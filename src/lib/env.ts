@@ -25,6 +25,10 @@ export function isObjectStorageEnabled() {
   );
 }
 
+export function isVercelBlobEnabled() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
 export function shouldAllowLocalFileStorage() {
   return !isProduction() || process.env.ALLOW_LOCAL_UPLOADS === "true";
 }

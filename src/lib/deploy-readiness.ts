@@ -3,6 +3,7 @@ import {
   getSiteUrl,
   isObjectStorageEnabled,
   isProduction,
+  isVercelBlobEnabled,
   shouldAllowLocalFileStorage,
 } from "./env";
 
@@ -41,6 +42,7 @@ export function isSpeechRecognitionEnabled() {
 }
 
 export function getStorageMode() {
+  if (isVercelBlobEnabled()) return "blob";
   if (isObjectStorageEnabled()) return "oss";
   if (shouldAllowLocalFileStorage()) return "local";
   return "disabled";
@@ -80,8 +82,11 @@ export function getDeployReadiness() {
     blockers.push("auth_url_not_public");
   }
 
-  if (mode === "production" && storageMode !== "oss") {
-    blockers.push("storage_not_oss");
+  const storageReady =
+    storageMode === "blob" || storageMode === "oss" || (mode !== "production" && storageMode === "local");
+
+  if (mode === "production" && !storageReady) {
+    blockers.push("storage_not_ready");
   }
 
   return {
@@ -93,8 +98,8 @@ export function getDeployReadiness() {
     },
     storage: {
       mode: storageMode,
-      ready: storageMode === "oss" || (mode !== "production" && storageMode === "local"),
-      missingEnv: storageMode === "oss" ? [] : missingOssEnv,
+      ready: storageReady,
+      missingEnv: storageReady ? [] : [...missingOssEnv, "BLOB_READ_WRITE_TOKEN"].filter((name) => !isFilled(name)),
       localFallbackAllowed: shouldAllowLocalFileStorage(),
     },
     speech: {

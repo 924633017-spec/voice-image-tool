@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import seasideHero from "@/assets/demo-seaside-blue-horizontal-v4.png";
+import seasideHero from "@/assets/demo-seaside-blue-horizontal-v4.webp";
 
 const inputClass =
   "w-full rounded-[1.15rem] border border-white/10 bg-white/8 px-4 py-3.5 text-sm text-white outline-none transition-all duration-200 placeholder:text-white/30 focus:border-white/18 focus:bg-white/10";

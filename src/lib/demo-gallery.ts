@@ -1,7 +1,7 @@
-import seasideHero from "@/assets/demo-seaside-blue-horizontal-v4.png";
-import blessingHero from "@/assets/demo-blessing-premium-v1.png";
-import musicHero from "@/assets/demo-music-premium-v1.png";
-import showcaseHero from "@/assets/demo-showcase-premium-v1.png";
+import seasideHero from "@/assets/demo-seaside-blue-horizontal-v4.webp";
+import blessingHero from "@/assets/demo-blessing-premium-v1.webp";
+import musicHero from "@/assets/demo-music-premium-v1.webp";
+import showcaseHero from "@/assets/demo-showcase-premium-v1.webp";
 
 export type DemoCategory = {
   id: string;

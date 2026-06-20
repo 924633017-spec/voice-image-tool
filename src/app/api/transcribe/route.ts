@@ -156,7 +156,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({
           text: fullText,
-          segments: sentences.filter((s) => s.text),
+          segments: sentences.filter((s: { text: string; startTime: number; endTime: number }) => s.text),
         });
       }
     } catch {}

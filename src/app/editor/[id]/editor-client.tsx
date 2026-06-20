@@ -1443,7 +1443,7 @@ export function EditorClient({ project }: { project: Proj }) {
                           className="block max-h-[76vh] max-w-full object-contain"
                         />
 
-                        {(previewHasAudio || positionMode) && (
+                        {(hasImage || positionMode) && (
                           <div
                             onPointerDown={handlePlayerDragStart}
                             className={`absolute z-30 ${positionMode ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"}`}
@@ -1454,7 +1454,7 @@ export function EditorClient({ project }: { project: Proj }) {
                             }}
                           >
                             <div className="flex flex-col max-w-[min(42vw,320px)] sm:max-w-[min(34vw,360px)]" style={{ alignItems: previewAlignItems }}>
-                              {(previewHasAudio || positionMode) && previewVerticalMode === "above" && (
+                              {(hasImage || positionMode) && previewVerticalMode === "above" && (
                                 <div className="pointer-events-none relative mb-1.5 overflow-hidden sm:mb-2">
                                   <div className="rounded-full bg-[linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,0.18)_14%,rgba(0,0,0,0.14)_86%,rgba(0,0,0,0))] px-1 py-1 backdrop-blur-sm">
                                     <p className="artwork-subtitle-pill whitespace-nowrap px-2 text-[10px] leading-[1.35] text-white/74 sm:text-[12px]">
@@ -1519,7 +1519,7 @@ export function EditorClient({ project }: { project: Proj }) {
                                 </div>
                               </div>
 
-                              {(previewHasAudio || positionMode) && previewVerticalMode === "below" && (
+                              {(hasImage || positionMode) && previewVerticalMode === "below" && (
                                 <div className="pointer-events-none relative mt-1.5 overflow-hidden sm:mt-2">
                                   <div className="rounded-full bg-[linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,0.18)_14%,rgba(0,0,0,0.14)_86%,rgba(0,0,0,0))] px-1 py-1 backdrop-blur-sm">
                                     <p className="artwork-subtitle-pill whitespace-nowrap px-2 text-[10px] leading-[1.35] text-white/74 sm:text-[12px]">

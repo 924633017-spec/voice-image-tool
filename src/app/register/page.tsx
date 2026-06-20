@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import seasideHero from "@/assets/demo-seaside-blue-horizontal-v4.webp";
-
 const inputClass =
   "w-full rounded-[1.15rem] border border-white/10 bg-white/8 px-4 py-3.5 text-sm text-white outline-none transition-all duration-200 placeholder:text-white/30 focus:border-white/18 focus:bg-white/10";
 
@@ -57,13 +55,6 @@ export default function RegisterPage() {
     <div className="site-shell site-grid min-h-screen px-4 py-5 sm:px-8 sm:py-8 lg:px-12 lg:py-10">
       <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] w-full max-w-7xl items-start sm:items-center">
         <section className="gallery-stage relative w-full overflow-hidden rounded-[2.2rem] border border-white/10">
-          <div className="gallery-stage-backdrop">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={seasideHero.src} alt="开始制作背景" className="gallery-stage-image" />
-          </div>
-
-          <div className="gallery-stage-overlay" />
-
           <div className="relative z-10 grid min-h-[auto] gap-6 p-5 sm:min-h-[700px] sm:p-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(420px,0.88fr)] lg:gap-8 lg:p-10">
             <div className="flex flex-col justify-between">
               <div>

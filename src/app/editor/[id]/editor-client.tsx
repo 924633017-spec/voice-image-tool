@@ -1111,7 +1111,13 @@ export function EditorClient({ project }: { project: Proj }) {
     await persistProjectState(nextSpots);
     setRecordedBlob(null);
     setLiveSubs([]);
-    toast.success(`录音已保存${subtitles.length > 0 ? `，识别出 ${subtitles.length} 句字幕` : ""}`);
+    // First recording: auto-enter position mode so user sees the player
+    if (recordedCount === 0 && !parsedSettings.playerPosition) {
+      setPositionMode(true);
+      toast.success("录音已保存！请在作品上点击放下播放键的位置。", { duration: 5000 });
+    } else {
+      toast.success(`录音已保存${subtitles.length > 0 ? `，识别出 ${subtitles.length} 句字幕` : ""}`);
+    }
   }
 
   function togglePreviewAudio(spot: Spot) {

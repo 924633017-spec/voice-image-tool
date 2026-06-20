@@ -44,8 +44,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Registration error:", error);
+    const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "注册失败，请稍后重试" },
+      { error: `注册失败: ${message}` },
       { status: 500 }
     );
   }

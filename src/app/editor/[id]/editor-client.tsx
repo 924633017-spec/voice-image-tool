@@ -725,6 +725,15 @@ export function EditorClient({ project }: { project: Proj }) {
   const primarySpot = spots[0] ?? null;
   const playableSpots = spots.filter((spot) => spot.audio);
   const recordedCount = spots.filter((spot) => spot.audio).length;
+  // DEBUG — remove after testing
+  const debugInfo = imageUrl ? JSON.stringify({
+    spots: spots.length,
+    rec: recordedCount,
+    hasAudio: previewHasAudio,
+    playerPos: `${playerPosition.x},${playerPosition.y}`,
+    posMode: positionMode,
+    imgUrl: imageUrl?.slice(0, 30),
+  }).slice(0, 200) : null;
   const shareUrl = buildShareUrl(project.id);
   const shareIsLocal = isLocalShareUrl(shareUrl);
   const canPreview = Boolean(imageUrl && recordedCount > 0);
@@ -1323,6 +1332,11 @@ export function EditorClient({ project }: { project: Proj }) {
                         </div>
                       ))}
                     </div>
+                    {debugInfo && (
+                      <div className="mt-2 rounded-xl border border-yellow-500/30 bg-yellow-500/5 px-3 py-2 text-[10px] text-yellow-400/80 font-mono">
+                        DEBUG: {debugInfo}
+                      </div>
+                    )}
                   </div>
 
                   <div className="hidden flex-wrap gap-2 lg:flex">

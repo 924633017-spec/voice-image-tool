@@ -1058,56 +1058,72 @@ export function EditorClient({ project }: { project: Proj }) {
   async function saveRecording() {
     if (!recordedBlob || !selectedId) return;
 
-    const formData = new FormData();
-    formData.append("file", recordedBlob, "recording.webm");
-    formData.append("duration", String(Number(recordingTime.toFixed(2))));
-    const response = await fetch("/api/upload?type=audio", { method: "POST", body: formData });
-    if (!response.ok) {
-      toast.error("上传失败");
-      return;
-    }
-
-    const { url, duration } = await response.json();
-    const finalDuration = duration || recordingTime;
-    const rawResults = speechResultsRef.current;
-    let subtitles = buildTimedSubtitles(rawResults, finalDuration);
-
+    const savingId = toast.loading("正在保存录音…");
     try {
-      const transcribeResponse = await fetch("/api/transcribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ audioUrl: url, duration: finalDuration }),
-      });
-
-      if (transcribeResponse.ok) {
-        const transcribeData = (await transcribeResponse.json()) as {
-          text?: string;
-          segments?: Array<{ text: string; startTime: number; endTime: number }>;
-        };
-        if (transcribeData.segments?.length) {
-          subtitles = buildSubtitlesFromSegments(transcribeData.segments, finalDuration);
-        }
+      const formData = new FormData();
+      formData.append("file", recordedBlob, "recording.webm");
+      formData.append("duration", String(Number(recordingTime.toFixed(2))));
+      const response = await fetch("/api/upload?type=audio", { method: "POST", body: formData });
+      if (!response.ok) {
+        const errText = await response.text().catch(() => "");
+        toast.dismiss(savingId);
+        toast.error(`上传失败: ${response.status} ${errText}`);
+        return;
       }
-    } catch {}
 
-    const audioData: AudioData = {
-      id: crypto.randomUUID(),
-      audioUrl: url,
-      duration: finalDuration,
-      subtitles,
-    };
+      const { url, duration } = await response.json();
+      const finalDuration = duration || recordingTime;
+      const rawResults = speechResultsRef.current;
+      let subtitles = buildTimedSubtitles(rawResults, finalDuration);
 
-    const nextSpots = spots.map((spot) => (spot.id === selectedId ? { ...spot, audio: audioData } : spot));
-    setSpots(nextSpots);
-    await persistProjectState(nextSpots);
-    setRecordedBlob(null);
-    setLiveSubs([]);
-    // First recording: auto-enter position mode so user sees the player
-    if (recordedCount === 0 && !parsedSettings.playerPosition) {
-      setPositionMode(true);
-      toast.success("录音已保存！请在作品上点击放下播放键的位置。", { duration: 5000 });
-    } else {
-      toast.success(`录音已保存${subtitles.length > 0 ? `，识别出 ${subtitles.length} 句字幕` : ""}`);
+      try {
+        const transcribeResponse = await fetch("/api/transcribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ audioUrl: url, duration: finalDuration }),
+        });
+        if (transcribeResponse.ok) {
+          const transcribeData = (await transcribeResponse.json()) as {
+            text?: string;
+            segments?: Array<{ text: string; startTime: number; endTime: number }>;
+          };
+          if (transcribeData.segments?.length) {
+            subtitles = buildSubtitlesFromSegments(transcribeData.segments, finalDuration);
+          }
+        }
+      } catch {}
+
+      const audioData: AudioData = {
+        id: crypto.randomUUID(),
+        audioUrl: url,
+        duration: finalDuration,
+        subtitles,
+      };
+
+      const nextSpots = spots.map((spot) => (spot.id === selectedId ? { ...spot, audio: audioData } : spot));
+      setSpots(nextSpots);
+
+      try {
+        await persistProjectState(nextSpots);
+      } catch {
+        toast.dismiss(savingId);
+        toast.error("项目更新失败，请重试");
+        return;
+      }
+
+      setRecordedBlob(null);
+      setLiveSubs([]);
+      toast.dismiss(savingId);
+
+      if (recordedCount === 0 && !parsedSettings.playerPosition) {
+        setPositionMode(true);
+        toast.success("录音已保存！请在作品上点击放下播放键的位置。", { duration: 5000 });
+      } else {
+        toast.success(`录音已保存${subtitles.length > 0 ? `，识别出 ${subtitles.length} 句字幕` : ""}`);
+      }
+    } catch (err) {
+      toast.dismiss(savingId);
+      toast.error(`保存失败: ${err instanceof Error ? err.message : "网络错误"}`);
     }
   }
 

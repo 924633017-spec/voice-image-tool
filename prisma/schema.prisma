@@ -137,3 +137,14 @@ model Subscription {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+// ========== 内置文件存储 (fallback when no cloud storage) ==========
+
+model StoredFile {
+  id        String   @id @default(cuid())
+  data      Bytes
+  mimeType  String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

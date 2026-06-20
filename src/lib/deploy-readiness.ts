@@ -45,7 +45,7 @@ export function getStorageMode() {
   if (isVercelBlobEnabled()) return "blob";
   if (isObjectStorageEnabled()) return "oss";
   if (shouldAllowLocalFileStorage()) return "local";
-  return "disabled";
+  return "db"; // built-in database storage fallback
 }
 
 export function getDeployReadiness() {
@@ -82,8 +82,7 @@ export function getDeployReadiness() {
     blockers.push("auth_url_not_public");
   }
 
-  const storageReady =
-    storageMode === "blob" || storageMode === "oss" || (mode !== "production" && storageMode === "local");
+  const storageReady = true; // db fallback always works
 
   if (mode === "production" && !storageReady) {
     blockers.push("storage_not_ready");

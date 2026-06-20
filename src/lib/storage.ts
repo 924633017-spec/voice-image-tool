@@ -2,7 +2,8 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { put } from "@vercel/blob";
-import { isObjectStorageEnabled, shouldAllowLocalFileStorage } from "./env";
+import { isObjectStorageEnabled, isVercelBlobEnabled, shouldAllowLocalFileStorage } from "./env";
+import { prisma } from "./prisma";
 
 type UploadedAsset = {
   url: string;
@@ -18,10 +19,6 @@ function normalizeObjectKey(objectKey: string) {
 function buildObjectKey(type: "image" | "audio", filename: string) {
   const datePrefix = new Date().toISOString().slice(0, 10).replaceAll("-", "/");
   return `${type}/${datePrefix}/${filename}`;
-}
-
-function isVercelBlobEnabled() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
 
 async function saveToVercelBlob(
@@ -125,6 +122,24 @@ async function saveToOss(
   };
 }
 
+async function saveToDB(
+  buffer: Buffer,
+  mimeType: string,
+): Promise<UploadedAsset> {
+  const record = await prisma.storedFile.create({
+    data: {
+      data: new Uint8Array(buffer),
+      mimeType,
+    },
+  });
+
+  return {
+    url: `/api/files/${record.id}`,
+    storageKey: record.id,
+    size: buffer.length,
+  };
+}
+
 export async function storeUploadedAsset({
   buffer,
   filename,
@@ -147,11 +162,12 @@ export async function storeUploadedAsset({
   }
 
   // 3. Local disk (dev only)
-  if (!shouldAllowLocalFileStorage()) {
-    throw new Error("local_storage_disabled");
+  if (shouldAllowLocalFileStorage()) {
+    return saveToLocal(type, filename, buffer);
   }
 
-  return saveToLocal(type, filename, buffer);
+  // 4. Database fallback (always available, works everywhere)
+  return saveToDB(buffer, mimeType);
 }
 
 export async function readStoredAsset(assetUrl: string) {

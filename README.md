@@ -129,97 +129,65 @@ npm run db:generate
 
 ## 🆓 零成本部署指南
 
-使用以下三个免费服务，一分钱不花即可上线：
+只需两个免费服务，不需要绑卡：
 
 | 服务 | 免费额度 | 用途 |
 |------|----------|------|
-| Vercel (Hobby) | 无限部署 / 100 GB 带宽 | 托管 Next.js |
+| Vercel (Hobby) | 无限部署 + 1 GB Blob 存储 | 托管 + 文件存储 |
 | Neon (Free) | 0.5 GB PostgreSQL | 数据库 |
-| Cloudflare R2 | 10 GB 存储 / 无出口费 | 图片 & 音频文件 |
 | 浏览器语音识别 | 免费 | 录音 + 实时字幕 |
 
-### 第一步：注册账号
+### 第一步：Neon 创建数据库
 
-1. [github.com](https://github.com) — 把项目推到 GitHub（Vercel 从 GitHub 导入）
-2. [vercel.com](https://vercel.com) — 用 GitHub 登录
-3. [neon.tech](https://neon.tech) — 用 GitHub 登录
-4. [cloudflare.com](https://dash.cloudflare.com) — 注册 Cloudflare 账号
-
-### 第二步：Neon 创建数据库（1 分钟）
-
-1. 进入 [Neon Console](https://console.neon.tech)
-2. 点击 **"Create project"**
-3. 记下给你生成的连接字符串，类似：
+1. 打开 [neon.tech](https://neon.tech)，用 GitHub 登录
+2. 创建项目，拿到连接字符串，类似：
    ```
    postgresql://<user>:<password>@<host>/<dbname>?sslmode=require
    ```
-4. 你会用到 **两个** 地址：
-   - `DATABASE_URL` → 用普通连接地址（支持连接池）
-   - `DIRECT_URL` → 用同一地址去掉 `-pooler`（Prisma migrate 需要直连）
+3. 记下两个地址：
+   - `DATABASE_URL` → 用连接池地址（带 `-pooler`）
+   - `DIRECT_URL` → 用直连地址
 
-### 第三步：Cloudflare R2 创建存储桶（2 分钟）
+### 第二步：部署到 Vercel
 
-1. 进入 [R2 控制台](https://dash.cloudflare.com/?to=/:account/r2)
-2. 点击 **"Create bucket"**，名称随意，比如 `voice-image-tool`
-3. 创建后进入 **"Manage R2 API Tokens"** → **"Create API token"**
-4. 权限选 **"Object Read & Write"**，指定刚刚创建的 bucket
-5. 记下：
-   - `Access Key ID`
-   - `Secret Access Key`
-   - Endpoint: `https://<account-id>.r2.cloudflarestorage.com`（在 R2 概览页能看到）
-6. **重要**：如需公开访问文件，在 bucket 设置里绑定一个自定义域名，或用 `r2.dev` 域名（在 bucket → Settings → Public access 开启）
-
-### 第四步：部署到 Vercel（2 分钟）
-
-1. 把项目推到 GitHub 仓库
-2. 打开 [Vercel](https://vercel.com) → **"New Project"** → 导入你的 GitHub 仓库
-3. **Framework** 自动识别为 Next.js，无需修改
-4. 展开 **"Environment Variables"**，填入：
+1. 把项目推到 GitHub
+2. 打开 [vercel.com](https://vercel.com)，用 GitHub 登录
+3. **"New Project"** → 导入你的仓库
+4. 展开 **Environment Variables**，填入：
 
 ```
-DATABASE_URL          = postgresql://...（Neon 连接池地址）
-DIRECT_URL            = postgresql://...（Neon 直连地址）
-AUTH_SECRET           = （运行 openssl rand -hex 32 生成一个）
-AUTH_URL              = https://你的域名.vercel.app
-AUTH_TRUST_HOST       = true
-NEXT_PUBLIC_SITE_URL  = https://你的域名.vercel.app
-S3_ENDPOINT           = https://<account-id>.r2.cloudflarestorage.com
-S3_BUCKET             = voice-image-tool
-S3_REGION             = auto
-S3_ACCESS_KEY_ID      = （R2 的 Access Key ID）
-S3_ACCESS_KEY_SECRET  = （R2 的 Secret Access Key）
-S3_PUBLIC_URL         = （你的 R2 公开访问域名，如 https://xxx.r2.dev）
+DATABASE_URL            = postgresql://...（Neon 连接池地址）
+DIRECT_URL              = postgresql://...（Neon 直连地址）
+AUTH_SECRET             = （运行 openssl rand -hex 32 生成）
+AUTH_URL                = https://你的项目名.vercel.app
+AUTH_TRUST_HOST         = true
+NEXT_PUBLIC_SITE_URL    = https://你的项目名.vercel.app
+BLOB_READ_WRITE_TOKEN   = （稍后在第三步获取）
 ```
 
-5. 点击 **"Deploy"**
+5. 先不要点 Deploy，先去做第三步拿 Blob token
 
-6. 部署完成后，执行数据库迁移：
+### 第三步：获取 Vercel Blob Token
+
+1. 回到 Vercel 项目页面，点顶部 **"Storage"** 标签
+2. 点 **"Create Database"** → 选 **"Blob"**
+3. 创建后会自动生成 `BLOB_READ_WRITE_TOKEN` 环境变量
+4. 把这个 token 填到上一步的环境变量里
+
+### 第四步：发布
+
+1. 环境变量全部填好后，点 **"Deploy"**
+2. 部署完成后，执行数据库迁移：
    ```bash
-   # 在你本地项目目录执行，会自动读取 Vercel 上的 DATABASE_URL
    npx prisma migrate deploy
    ```
-   或者更方便：在 Vercel 项目设置里把 `DATABASE_URL` 和 `DIRECT_URL` 填好后，用 Neon 的 SQL Editor 直接执行迁移 SQL。
 
 ### 第五步：验证
 
-部署完成后访问：
 - 首页：`https://你的域名.vercel.app`
-- 健康检查：`https://你的域名.vercel.app/api/health`
+- 健康检查：`/api/health`
 
 ### 语音识别说明
 
-- **浏览器语音识别**（免费）：编辑器里录音时，浏览器会自动把你说的话转成字幕。支持 Chrome、Edge、Safari。
-- **阿里云语音识别**（付费）：如果想用服务端精细识别，才需要配 `ALIYUN_SPEECH_*` 变量。免费部署可跳过。
-
-### 本地开发用 R2
-
-如果本地开发也想用 R2 而不是本地磁盘，把上面的 `S3_*` 变量填到 `.env` 里即可。`saveToS3` 会自动接管上传。
-
-## 推荐部署顺序（付费版）
-
-1. 先配置正式域名和 `NEXT_PUBLIC_SITE_URL`
-2. 再接 Neon Postgres
-3. 再接 OSS
-4. 再配置语音识别
-5. 执行 `npm run db:migrate:deploy`
-6. 最后跑 `build` 并正式发布
+- **浏览器语音识别（免费）**：编辑器录音时自动转字幕。支持 Chrome、Edge、Safari。
+- 阿里云语音识别（付费）：配 `ALIYUN_SPEECH_*` 变量可用，免费部署跳过即可。

@@ -1,8 +1,8 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { getStoragePublicBaseUrl, isObjectStorageEnabled, isS3StorageEnabled, shouldAllowLocalFileStorage } from "./env";
+import { put } from "@vercel/blob";
+import { isObjectStorageEnabled, shouldAllowLocalFileStorage } from "./env";
 
 type UploadedAsset = {
   url: string;
@@ -20,7 +20,34 @@ function buildObjectKey(type: "image" | "audio", filename: string) {
   return `${type}/${datePrefix}/${filename}`;
 }
 
-async function saveToLocal(type: "image" | "audio", filename: string, buffer: Buffer): Promise<UploadedAsset> {
+function isVercelBlobEnabled() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+async function saveToVercelBlob(
+  type: "image" | "audio",
+  filename: string,
+  buffer: Buffer,
+): Promise<UploadedAsset> {
+  const objectKey = normalizeObjectKey(buildObjectKey(type, filename));
+
+  const result = await put(objectKey, buffer, {
+    access: "public",
+    addRandomSuffix: false,
+  });
+
+  return {
+    url: result.url,
+    storageKey: objectKey,
+    size: buffer.length,
+  };
+}
+
+async function saveToLocal(
+  type: "image" | "audio",
+  filename: string,
+  buffer: Buffer,
+): Promise<UploadedAsset> {
   const uploadsDir = path.join(process.cwd(), "public", "uploads", type);
   await fs.mkdir(uploadsDir, { recursive: true });
   const filePath = path.join(uploadsDir, filename);
@@ -37,7 +64,32 @@ function hmacSha1Base64(secret: string, content: string) {
   return crypto.createHmac("sha1", secret).update(content).digest("base64");
 }
 
-async function saveToOss(type: "image" | "audio", filename: string, mimeType: string, buffer: Buffer): Promise<UploadedAsset> {
+function trimTrailingSlash(value: string) {
+  return value.trim().replace(/\/+$/u, "");
+}
+
+function getStoragePublicBaseUrl() {
+  const customCdn = trimTrailingSlash(process.env.OSS_PUBLIC_URL || "");
+  if (customCdn) return customCdn;
+
+  const bucket = process.env.OSS_BUCKET?.trim();
+  const endpoint = trimTrailingSlash(process.env.OSS_ENDPOINT || "");
+  if (!bucket || !endpoint) return "";
+
+  try {
+    const endpointUrl = new URL(endpoint);
+    return `https://${bucket}.${endpointUrl.host}`;
+  } catch {
+    return "";
+  }
+}
+
+async function saveToOss(
+  type: "image" | "audio",
+  filename: string,
+  mimeType: string,
+  buffer: Buffer,
+): Promise<UploadedAsset> {
   const endpoint = process.env.OSS_ENDPOINT!;
   const bucket = process.env.OSS_BUCKET!;
   const accessKeyId = process.env.OSS_ACCESS_KEY_ID!;
@@ -73,53 +125,6 @@ async function saveToOss(type: "image" | "audio", filename: string, mimeType: st
   };
 }
 
-function createS3Client() {
-  return new S3Client({
-    endpoint: process.env.S3_ENDPOINT!,
-    region: process.env.S3_REGION || "auto",
-    credentials: {
-      accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.S3_ACCESS_KEY_SECRET!,
-    },
-    forcePathStyle: true,
-  });
-}
-
-async function saveToS3(
-  type: "image" | "audio",
-  filename: string,
-  mimeType: string,
-  buffer: Buffer,
-): Promise<UploadedAsset> {
-  const bucket = process.env.S3_BUCKET!;
-  const objectKey = normalizeObjectKey(buildObjectKey(type, filename));
-  const client = createS3Client();
-
-  await client.send(
-    new PutObjectCommand({
-      Bucket: bucket,
-      Key: objectKey,
-      Body: buffer,
-      ContentType: mimeType,
-    }),
-  );
-
-  const publicBaseUrl = getStoragePublicBaseUrl();
-  const publicUrl = publicBaseUrl
-    ? `${publicBaseUrl}/${objectKey}`
-    : `${trimTrailingSlash(process.env.S3_ENDPOINT!)}/${bucket}/${objectKey}`;
-
-  return {
-    url: publicUrl,
-    storageKey: objectKey,
-    size: buffer.length,
-  };
-}
-
-function trimTrailingSlash(value: string) {
-  return value.trim().replace(/\/+$/u, "");
-}
-
 export async function storeUploadedAsset({
   buffer,
   filename,
@@ -131,14 +136,17 @@ export async function storeUploadedAsset({
   mimeType: string;
   type: "image" | "audio";
 }) {
-  if (isS3StorageEnabled()) {
-    return saveToS3(type, filename, mimeType, buffer);
+  // 1. Vercel Blob (free, no external account needed)
+  if (isVercelBlobEnabled()) {
+    return saveToVercelBlob(type, filename, buffer);
   }
 
+  // 2. Alibaba Cloud OSS
   if (isObjectStorageEnabled()) {
     return saveToOss(type, filename, mimeType, buffer);
   }
 
+  // 3. Local disk (dev only)
   if (!shouldAllowLocalFileStorage()) {
     throw new Error("local_storage_disabled");
   }

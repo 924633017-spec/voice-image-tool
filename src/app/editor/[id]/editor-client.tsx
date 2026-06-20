@@ -1022,8 +1022,24 @@ export function EditorClient({ project }: { project: Proj }) {
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
+
+      // Try codecs in order of preference (Safari only supports audio/mp4)
+      const codecs = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/mpeg"];
+      let recorder: MediaRecorder | null = null;
+      let selectedMime = "";
+      for (const codec of codecs) {
+        if (MediaRecorder.isTypeSupported(codec)) {
+          recorder = new MediaRecorder(stream, { mimeType: codec });
+          selectedMime = codec;
+          break;
+        }
+      }
+      if (!recorder) {
+        recorder = new MediaRecorder(stream); // fallback: let browser decide
+      }
+
       chunksRef.current = [];
+      const blobType = selectedMime.startsWith("audio/mp4") ? "audio/mp4" : "audio/webm";
       recorder.ondataavailable = (event) => {
         if (event.data.size) chunksRef.current.push(event.data);
       };
@@ -1033,7 +1049,7 @@ export function EditorClient({ project }: { project: Proj }) {
         try {
           recognitionRef.current?.stop();
         } catch {}
-        setRecordedBlob(new Blob(chunksRef.current, { type: "audio/webm" }));
+        setRecordedBlob(new Blob(chunksRef.current, { type: blobType }));
       };
 
       recorder.start();
@@ -1042,8 +1058,11 @@ export function EditorClient({ project }: { project: Proj }) {
       setRecording(true);
       setRecordingTime(0);
       timerRef.current = setInterval(() => setRecordingTime((value) => value + 0.1), 100);
-    } catch {
-      toast.error("请允许麦克风权限");
+    } catch (err) {
+      const msg = err instanceof DOMException
+        ? (err.name === "NotAllowedError" ? "请允许麦克风权限" : `录音失败: ${err.message}`)
+        : "录音启动失败";
+      toast.error(msg);
     }
   }
 
@@ -1061,7 +1080,8 @@ export function EditorClient({ project }: { project: Proj }) {
     const savingId = toast.loading("正在保存录音…");
     try {
       const formData = new FormData();
-      formData.append("file", recordedBlob, "recording.webm");
+      const ext = recordedBlob.type === "audio/mp4" ? "m4a" : "webm";
+      formData.append("file", recordedBlob, `recording.${ext}`);
       formData.append("duration", String(Number(recordingTime.toFixed(2))));
       const response = await fetch("/api/upload?type=audio", { method: "POST", body: formData });
       if (!response.ok) {

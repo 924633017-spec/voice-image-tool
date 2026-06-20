@@ -18,12 +18,7 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
   devIndicators: false,
   outputFileTracingIncludes: {
-    "/api/register": ["./src/generated/prisma/**/*"],
-    "/api/upload": ["./src/generated/prisma/**/*"],
-    "/api/projects/*": ["./src/generated/prisma/**/*"],
-    "/api/transcribe": ["./src/generated/prisma/**/*"],
-    "/api/files/*": ["./src/generated/prisma/**/*"],
-    "/api/health": ["./src/generated/prisma/**/*"],
+    "*": ["./src/generated/prisma/**/*"],
   },
   images: {
     remotePatterns: Array.from(remoteHosts).map((hostname) => ({

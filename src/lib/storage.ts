@@ -183,6 +183,14 @@ export async function readStoredAsset(assetUrl: string) {
     return Buffer.from(await response.arrayBuffer());
   }
 
+  // DB-stored file: /api/files/:id
+  const dbMatch = /^\/api\/files\/([^/]+)$/u.exec(assetUrl);
+  if (dbMatch) {
+    const record = await prisma.storedFile.findUnique({ where: { id: dbMatch[1] } });
+    if (!record) throw new Error("stored_file_not_found");
+    return Buffer.from(record.data);
+  }
+
   const normalizedPath = assetUrl.startsWith("/") ? assetUrl.slice(1) : assetUrl;
   const filePath = path.join(process.cwd(), "public", normalizedPath);
   return fs.readFile(filePath);

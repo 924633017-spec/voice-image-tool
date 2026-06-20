@@ -17,9 +17,6 @@ for (const candidate of [siteUrl, ossPublicUrl, ossEndpoint]) {
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
   devIndicators: false,
-  outputFileTracingIncludes: {
-    "*": ["./src/generated/prisma/**/*"],
-  },
   images: {
     remotePatterns: Array.from(remoteHosts).map((hostname) => ({
       protocol: "https",

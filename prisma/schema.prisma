@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ========== 用户 & 认证 ==========
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  password      String?   // hashed, for credentials auth
+  emailVerified DateTime?
+  image         String?
+  plan          String    @default("free") // free | pro | business
+  createdAt     DateTime  @default(now())
+
+  accounts     Account[]
+  sessions     Session[]
+  projects     Project[]
+  subscription Subscription?
+}
+
+// ========== 项目 ==========
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  coverImage  String?
+  settings    String   @default("{}") // { theme, password, isPublic } — JSON string
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId  String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hotspots Hotspot[]
+}
+
+// ========== 热点 ==========
+
+model Hotspot {
+  id        String @id @default(cuid())
+  projectId String
+  x         Float  // 百分比坐标 0~100
+  y         Float  // 百分比坐标 0~100
+  color     String @default("#ef4444")
+  icon      String @default("pin")
+  title     String @default("")
+  orderNum  Int    @default(0)
+
+  project Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  audio   AudioClip?
+
+  @@index([projectId])
+}
+
+// ========== 音频 ==========
+
+model AudioClip {
+  id        String  @id @default(cuid())
+  hotspotId String  @unique
+  audioUrl  String
+  duration  Float   @default(0) // 秒
+
+  hotspot   Hotspot            @relation(fields: [hotspotId], references: [id], onDelete: Cascade)
+  subtitles SubtitleSegment[]
+
+  @@index([hotspotId])
+}
+
+// ========== 字幕片段 ==========
+
+model SubtitleSegment {
+  id         String @id @default(cuid())
+  audioClipId String
+  text       String
+  startTime  Float  // 秒
+  endTime    Float  // 秒
+
+  audioClip AudioClip @relation(fields: [audioClipId], references: [id], onDelete: Cascade)
+
+  @@index([audioClipId])
+  @@index([startTime])
+}
+
+// ========== 订阅 ==========
+
+model Subscription {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  plan        String    // free | pro | business
+  status      String    @default("active") // active | cancelled | expired
+  startDate   DateTime  @default(now())
+  endDate     DateTime?
+  paymentRef  String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

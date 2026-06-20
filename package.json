@@ -10,8 +10,7 @@
     "db:generate": "prisma generate",
     "db:migrate:deploy": "prisma migrate deploy",
     "deploy:check": "node --env-file=.env scripts/deploy-check.mjs",
-    "postinstall": "prisma generate",
-    "vercel-build": "prisma generate && next build"
+    "postinstall": "prisma generate && mkdir -p node_modules/.prisma/client && cp src/generated/prisma/libquery_engine-*.node node_modules/.prisma/client/ 2>/dev/null; true"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",

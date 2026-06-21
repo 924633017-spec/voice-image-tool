@@ -1392,32 +1392,31 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
 
   return (
     <>
-      <div className="site-shell site-grid min-h-screen px-4 py-5 sm:px-8 sm:py-8 lg:px-12 lg:py-10">
-        <header className="sticky top-0 z-40 mb-5 border-b border-white/8 bg-black/72 backdrop-blur-xl">
-          <div className="mx-auto flex max-w-[1540px] flex-wrap items-center justify-between gap-4 px-0 py-4 sm:px-0">
+      <div className="site-shell site-grid min-h-screen px-3 py-3 sm:px-8 sm:py-8 lg:px-12 lg:py-10">
+        <header className="sticky top-0 z-40 border-b border-white/8 bg-black/72 backdrop-blur-xl">
+          <div className="mx-auto flex max-w-[1540px] flex-wrap items-center justify-between gap-2 px-0 py-3 sm:py-4 sm:px-0">
             <div className="min-w-0">
               <button
                 onClick={() => router.push("/dashboard")}
-                className="text-xs tracking-[0.16em] text-white/42 uppercase transition-opacity hover:opacity-75"
+                className="text-[11px] tracking-[0.16em] text-white/42 uppercase transition-opacity hover:opacity-75"
               >
                 返回
               </button>
-              <div className="mt-3 flex flex-wrap items-center gap-3">
+              <div className="mt-2 flex flex-wrap items-center gap-2 sm:mt-3 sm:gap-3">
                 <input
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
-                  className="display-title min-w-[180px] bg-transparent text-[1.95rem] leading-none text-white outline-none sm:min-w-[240px] sm:text-[2.8rem] lg:text-[3.1rem]"
+                  className="display-title min-w-[120px] bg-transparent text-[1.35rem] leading-none text-white outline-none sm:min-w-[240px] sm:text-[2.8rem] lg:text-[3.1rem]"
                 />
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <button onClick={handlePreviewStep} className="ghost-button ghost-button-dark rounded-full px-4 py-2 text-sm font-medium">预览</button>
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <button onClick={handleShareStep} className="hidden rounded-full px-4 py-2 text-sm font-medium ghost-button ghost-button-dark sm:inline-flex">分享</button>
               <button
                 onClick={saveProject}
                 disabled={saving}
-                className="accent-button rounded-full px-5 py-2.5 text-sm font-medium disabled:opacity-55"
+                className="accent-button rounded-full px-3 py-2 text-xs font-medium sm:px-5 sm:py-2.5 sm:text-sm disabled:opacity-55"
               >
                 {saving ? "保存中…" : "保存"}
               </button>
@@ -1682,26 +1681,21 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
             </section>
 
             <section className="space-y-4 lg:hidden">
-              <section className="premium-shell rounded-[1.6rem] p-4 sm:rounded-[2rem]">
-                <div className="grid grid-cols-2 gap-3">
-                  <button onClick={triggerImagePicker} className="ghost-button ghost-button-dark rounded-full px-4 py-3 text-sm font-medium">
+              <section className="premium-shell rounded-[1.6rem] p-3 sm:rounded-[2rem] sm:p-4">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <button onClick={triggerImagePicker} className="ghost-button ghost-button-dark rounded-full px-3 py-2.5 text-xs font-medium sm:px-4 sm:py-3 sm:text-sm">
                     {uploading ? "上传中…" : imageUrl ? "换图" : "选图"}
                   </button>
-
-
-                  <button
-                    onClick={() => { setAddSpotMode(!addSpotMode); if (positionMode) setPositionMode(false); }}
-                    className={`rounded-full px-4 py-3 text-sm font-medium ${addSpotMode ? "accent-button" : "ghost-button ghost-button-dark"}`}
-                  >
+                  <button onClick={() => { setAddSpotMode(!addSpotMode); if (positionMode) setPositionMode(false); }} className={`rounded-full px-3 py-2.5 text-xs font-medium sm:px-4 sm:py-3 sm:text-sm ${addSpotMode ? "accent-button" : "ghost-button ghost-button-dark"}`}>
                     {addSpotMode ? "放置中" : "添加录音"}
                   </button>
-                  <button onClick={handleShareStep} className="ghost-button ghost-button-dark rounded-full px-4 py-3 text-sm font-medium">
+                  <button onClick={handlePreviewStep} disabled={!canPreview} className="ghost-button ghost-button-dark rounded-full px-3 py-2.5 text-xs font-medium sm:px-4 sm:py-3 sm:text-sm disabled:opacity-35">
+                    预览
+                  </button>
+                  <button onClick={handleShareStep} className="ghost-button ghost-button-dark rounded-full px-3 py-2.5 text-xs font-medium sm:px-4 sm:py-3 sm:text-sm">
                     分享
                   </button>
                 </div>
-                <button onClick={handlePreviewStep} disabled={!canPreview} className="ghost-button ghost-button-dark mt-3 w-full rounded-full px-4 py-3 text-sm font-medium disabled:opacity-35">
-                  打开预览
-                </button>
               </section>
 
               <section className="premium-shell rounded-[1.6rem] p-4 sm:rounded-[2rem]">
@@ -1744,26 +1738,65 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                 </div>
               </section>
 
+              {/* Mobile sticky recording bar */}
               {selectedSpot && (
-              <section id="record-panel-mobile" className="premium-shell rounded-[1.6rem] p-4 sm:rounded-[2rem]">
-                <div className="rounded-[1.35rem] bg-white/[0.03] px-4 py-4 sm:rounded-[1.7rem]">
-                    <p className="eyebrow">录音</p>
-                    <h2 className="display-title mt-4 text-[2rem] leading-[0.88] text-white">{selectedSpot.title}</h2>
-                    <p className="mt-3 text-sm leading-6 text-white/46">说完这一句，它就会直接贴在作品上。</p>
-
-                    {selectedSpot.audio && !recordedBlob && (
-                      <button
-                        onClick={() => togglePreviewAudio(selectedSpot)}
-                        className="ghost-button ghost-button-dark mt-5 flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-medium"
-                      >
-                        {playingId === selectedSpot.id ? "暂停试听" : "播放试听"} · {formatSeconds(selectedSpot.audio.duration)}
+              <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+                <section className="premium-shell rounded-t-[1.6rem] p-4">
+                  {!recording && !recordedBlob && (
+                    <button onClick={() => { if (selectedSpot.audio && !confirm("重新录音将覆盖当前录音，确定？")) return; startRecording(); }} className="accent-button w-full rounded-full px-4 py-3 text-sm font-medium">
+                      {selectedSpot.audio ? "重新录音" : "开始录音 · " + selectedSpot.title}
+                    </button>
+                  )}
+                  {selectedSpot.audio && !recordedBlob && !recording && (
+                    <button onClick={() => togglePreviewAudio(selectedSpot)} className="ghost-button ghost-button-dark mb-2 flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-medium">
+                      {playingId === selectedSpot.id ? "暂停" : "播放"} · {formatSeconds(selectedSpot.audio.duration)}
+                    </button>
+                  )}
+                  {recording && (
+                    <div className="flex items-center gap-3">
+                      <span className="relative flex h-3 w-3">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 bg-white/80"/>
+                        <span className="relative inline-flex h-3 w-3 rounded-full bg-white"/>
+                      </span>
+                      <span className="text-sm font-semibold tabular-nums text-white">{recordingTime.toFixed(1)}s</span>
+                      <span className="text-xs text-white/42">字幕 {liveSubs.length}</span>
+                      <div className="flex-1"/>
+                      <button onClick={stopRecording} className="ghost-button ghost-button-dark rounded-full px-4 py-2 text-sm font-medium">
+                        停止
                       </button>
+                    </div>
+                  )}
+                  {recordedBlob && (
+                    <div className="flex gap-2">
+                      <button onClick={saveRecording} className="accent-button flex-1 rounded-full px-4 py-3 text-sm font-medium">保存</button>
+                      <button onClick={() => setRecordedBlob(null)} className="ghost-button ghost-button-dark rounded-full px-4 py-3 text-sm font-medium">丢弃</button>
+                    </div>
+                  )}
+                </section>
+              </div>
+              )}
+
+              {/* Mobile recording detail panel */}
+              {selectedSpot && (
+              <section id="record-panel-mobile" className="premium-shell rounded-[1.6rem] p-4 sm:rounded-[2rem] mb-20 lg:mb-0">
+                <div className="rounded-[1.35rem] bg-white/[0.03] px-4 py-4 sm:rounded-[1.7rem]">
+                    <p className="eyebrow">当前选中</p>
+                    <h2 className="display-title mt-3 text-[1.6rem] leading-[0.88] text-white">{selectedSpot.title}</h2>
+
+                    {selectedSpot.audio && (
+                      <div className="mt-3 text-xs text-white/42">
+                        已录音 · {selectedSpot.audio.subtitles.length} 句字幕
+                      </div>
                     )}
 
-                    {!recording && !recordedBlob && (
-                      <button onClick={() => { if (selectedSpot.audio && !confirm("重新录音将覆盖当前录音，确定？")) return; startRecording(); }} className="accent-button mt-3 w-full rounded-full px-4 py-3 text-sm font-medium">
-                        {selectedSpot.audio ? "重新录音" : "开始录音"}
-                      </button>
+                    {recording && liveSubs.length > 0 && (
+                      <div className="mt-3 space-y-1.5">
+                        {liveSubs.slice(-3).map((subtitle) => (
+                          <div key={subtitle.id} className="rounded-[1rem] border border-white/8 bg-white/[0.04] px-3 py-2 text-xs leading-5 text-white/72">
+                            {subtitle.text}
+                          </div>
+                        ))}
+                      </div>
                     )}
 
                     {recording && (

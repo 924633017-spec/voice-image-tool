@@ -1195,9 +1195,12 @@ export function EditorClient({ project }: { project: Proj }) {
     };
     audio.currentTime = 0;
     setPreviewTime(0);
-    void audio.play();
     audioRef.current = audio;
     setPlayingId(spot.id);
+    audio.play().catch(() => {
+      setPlayingId(null);
+      toast.error("播放失败，请检查网络");
+    });
   }
 
   async function saveProject() {
@@ -1263,6 +1266,7 @@ export function EditorClient({ project }: { project: Proj }) {
     }
     setDraggingSpotId(null);
     spotDragStartPos.current = null;
+    spotDragMovedRef.current = false;
   }
 
   function buildExportHtmlV2({

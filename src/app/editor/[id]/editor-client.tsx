@@ -789,7 +789,7 @@ export function EditorClient({ project }: { project: Proj }) {
 
   function createPrimaryCue() {
     if (!imageUrl || spots.length > 0) return;
-    createCue({ x: 50, y: 50, title: "本人录音" });
+    createCue({ x: 50, y: 50, title: "录音 1" });
   }
 
   function getPositionFromClientPoint(clientX: number, clientY: number) {
@@ -953,7 +953,7 @@ export function EditorClient({ project }: { project: Proj }) {
           x: 50,
           y: 50,
           color: COLORS[0],
-          title: "本人录音",
+          title: "录音 1",
           audio: null,
         };
         setSpots([cue]);

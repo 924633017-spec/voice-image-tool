@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MoreHorizontal, Trash2 } from "lucide-react";
@@ -55,13 +54,13 @@ export function ProjectCardActions({ projectId, title, canPlay }: ProjectCardAct
           align="end"
           className="min-w-[148px] rounded-2xl border border-white/10 bg-black/90 p-1 text-white shadow-[0_18px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl"
         >
-          <DropdownMenuItem className="rounded-xl px-3 py-2 text-white/86 focus:bg-white/[0.08] focus:text-white" asChild>
-            <Link href={`/editor/${projectId}`}>继续制作</Link>
+          <DropdownMenuItem className="rounded-xl px-3 py-2 text-white/86 focus:bg-white/[0.08] focus:text-white" onClick={() => router.push(`/editor/${projectId}`)}>
+            继续制作
           </DropdownMenuItem>
 
           {canPlay && (
-            <DropdownMenuItem className="rounded-xl px-3 py-2 text-white/86 focus:bg-white/[0.08] focus:text-white" asChild>
-              <Link href={`/play/${projectId}`}>查看成品</Link>
+            <DropdownMenuItem className="rounded-xl px-3 py-2 text-white/86 focus:bg-white/[0.08] focus:text-white" onClick={() => router.push(`/play/${projectId}`)}>
+              查看成品
             </DropdownMenuItem>
           )}
 

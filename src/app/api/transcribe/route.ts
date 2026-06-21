@@ -86,10 +86,10 @@ export async function POST(req: Request) {
     // 一句话识别（适合 60s 内短音频）
     const asrUrl = new URL("https://nls-gateway.cn-shanghai.aliyuncs.com/stream/v1/asr");
     asrUrl.searchParams.set("appkey", appKey);
-    asrUrl.searchParams.set("format", "opus");
-    asrUrl.searchParams.set("sample_rate", "16000");
+    // Let Aliyun auto-detect format and sample rate
     asrUrl.searchParams.set("enable_punctuation_prediction", "true");
     asrUrl.searchParams.set("enable_inverse_text_normalization", "true");
+    asrUrl.searchParams.set("max_sentence_silence", "800");
 
     const asrRes = await fetch(asrUrl.toString(), {
       method: "POST",

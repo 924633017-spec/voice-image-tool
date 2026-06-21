@@ -1468,91 +1468,80 @@ export function EditorClient({ project }: { project: Proj }) {
                           className="block max-h-[76vh] max-w-full object-contain"
                         />
 
-                        {(hasImage || positionMode) && (
+                        {/* Multi-spot players: each spot with audio gets its own play button + subtitle */}
+                        {spots.filter(s => s.audio).map((spot) => {
+                          const isPlayingThis = playingId === spot.id;
+                          const currentSub = spot.audio?.subtitles.find(
+                            s => previewTime >= s.startTime && previewTime < s.endTime
+                          );
+                          const anchorX = spot.x >= 78 ? "right" : spot.x <= 18 ? "left" : "center";
+                          const verticalMode = spot.y >= 78 ? "above" : "below";
+                          const tx = anchorX === "right" ? "-100%" : anchorX === "center" ? "-50%" : "0%";
+                          const ai = anchorX === "right" ? "flex-end" : anchorX === "center" ? "center" : "flex-start";
+                          return (
+                            <div
+                              key={spot.id}
+                              className="absolute z-30"
+                              style={{
+                                left: `${spot.x}%`,
+                                top: `${spot.y}%`,
+                                transform: `translate(${tx}, -50%)`,
+                              }}
+                            >
+                              <div className="flex flex-col max-w-[min(42vw,280px)] sm:max-w-[min(34vw,320px)]" style={{ alignItems: ai }}>
+                                {verticalMode === "above" && currentSub && (
+                                  <div className="pointer-events-none relative mb-1 overflow-hidden">
+                                    <div className="rounded-full bg-[linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,0.18)_14%,rgba(0,0,0,0.14)_86%,rgba(0,0,0,0))] px-1 py-0.5 backdrop-blur-sm">
+                                      <p className="whitespace-nowrap px-1.5 text-[10px] leading-[1.35] text-white/80">{currentSub.text}</p>
+                                    </div>
+                                  </div>
+                                )}
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setSelectedId(spot.id); togglePreviewAudio(spot); }}
+                                  className="pointer-events-auto inline-flex items-center gap-1 rounded-full border border-white/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.05))] px-2 py-1.5 backdrop-blur-xl shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.2),rgba(255,255,255,0.08))] transition-all"
+                                >
+                                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white" style={{ background: spot.color }}>
+                                    {isPlayingThis ? "⏸" : "▶"}
+                                  </span>
+                                  <span className="text-[10px] text-white/70">{spot.title}</span>
+                                </button>
+                                {verticalMode === "below" && currentSub && (
+                                  <div className="pointer-events-none relative mt-1 overflow-hidden">
+                                    <div className="rounded-full bg-[linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,0.18)_14%,rgba(0,0,0,0.14)_86%,rgba(0,0,0,0))] px-1 py-0.5 backdrop-blur-sm">
+                                      <p className="whitespace-nowrap px-1.5 text-[10px] leading-[1.35] text-white/80">{currentSub.text}</p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {/* Position mode drag target */}
+                        {positionMode && (
                           <div
                             onPointerDown={handlePlayerDragStart}
-                            className={`absolute z-30 ${positionMode ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"}`}
+                            className="absolute z-30 cursor-grab active:cursor-grabbing"
                             style={{
                               left: `${playerPosition.x}%`,
                               top: `${playerPosition.y}%`,
                               transform: `translate(${previewTranslateX}, -50%)`,
                             }}
                           >
-                            <div className="flex flex-col max-w-[min(42vw,320px)] sm:max-w-[min(34vw,360px)]" style={{ alignItems: previewAlignItems }}>
-                              {(hasImage || positionMode) && previewVerticalMode === "above" && (
-                                <div className="pointer-events-none relative mb-1.5 overflow-hidden sm:mb-2">
+                            <div className="flex flex-col" style={{ alignItems: previewAlignItems }}>
+                              {previewVerticalMode === "above" && (
+                                <div className="pointer-events-none relative mb-1.5 overflow-hidden">
                                   <div className="rounded-full bg-[linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,0.18)_14%,rgba(0,0,0,0.14)_86%,rgba(0,0,0,0))] px-1 py-1 backdrop-blur-sm">
-                                    <p className="artwork-subtitle-pill whitespace-nowrap px-2 text-[10px] leading-[1.35] text-white/74 sm:text-[12px]">
-                                      {previewSubtitle?.text ??
-                                        (positionMode
-                                          ? "拖到你想放的位置"
-                                          : "点一下，听听这张作品里留下的话。")}
-                                    </p>
+                                    <p className="artwork-subtitle-pill whitespace-nowrap px-2 text-[10px] leading-[1.35] text-white/74">拖到你想放的位置</p>
                                   </div>
                                 </div>
                               )}
-
-                              <div className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.11),rgba(255,255,255,0.035))] px-2 py-1.5 backdrop-blur-[18px] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_22px_rgba(0,0,0,0.08)] sm:gap-2 sm:px-2.5 sm:py-2">
-                                <button
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    if (positionMode) return;
-                                    if (previewHasAudio) {
-                                      togglePreviewAudio(previewSpot);
-                                    }
-                                  }}
-                                  aria-label={previewHasAudio ? (playingId === previewSpot.id ? "暂停试听" : "播放试听") : "等待录音"}
-                                  className={`play-orb relative flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full text-black shadow-[0_10px_20px_rgba(255,255,255,0.1)] transition-all duration-300 sm:h-7 sm:w-7 ${
-                                    previewHasAudio
-                                      ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(255,255,255,0.66))] hover:scale-[1.04] active:scale-95"
-                                      : "cursor-default bg-[linear-gradient(180deg,rgba(255,255,255,0.42),rgba(255,255,255,0.2))]"
-                                  }`}
-                                >
-                                  {previewHasAudio && playingId === previewSpot.id ? (
-                                    <span className="relative z-10 flex gap-[3px]">
-                                      <span className="h-[10px] w-[2px] rounded-full bg-black/88 sm:h-3" />
-                                      <span className="h-[10px] w-[2px] rounded-full bg-black/88 sm:h-3" />
-                                    </span>
-                                  ) : (
-                                    <span className="relative z-10 ml-[1px] h-0 w-0 border-b-[4px] border-l-[7px] border-t-[4px] border-b-transparent border-l-black border-t-transparent sm:border-b-[5px] sm:border-l-[8px] sm:border-t-[5px]" />
-                                  )}
-                                </button>
-
-                                <div className="flex items-center gap-[2px] sm:gap-[3px]">
-                                  {(previewCompactArtwork
-                                    ? [0.4, 0.7, 0.54, 0.86, 0.46, 0.34, 0.6, 0.48]
-                                    : [0.4, 0.7, 0.54, 0.86, 0.46, 0.34, 0.6, 0.48, 0.78, 0.92]
-                                  ).map((height, index, bars) => {
-                                    const active = previewSpot.audio
-                                      ? previewTime / previewSpot.audio.duration >= index / Math.max(1, bars.length - 1)
-                                      : false;
-                                    return (
-                                      <span
-                                        key={index}
-                                        className="w-[2.5px] rounded-full transition-all duration-150 sm:w-[3px]"
-                                        style={{
-                                          height: `${(previewCompactArtwork ? 3.5 : 4) + height * (previewCompactArtwork ? 8 : 9)}px`,
-                                          background: active
-                                            ? "rgba(255,255,255,0.92)"
-                                            : previewHasAudio
-                                              ? "rgba(255,255,255,0.24)"
-                                              : "rgba(255,255,255,0.14)",
-                                        }}
-                                      />
-                                    );
-                                  })}
-                                </div>
+                              <div className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.11),rgba(255,255,255,0.035))] px-2 py-1.5 backdrop-blur-[18px]">
+                                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/30 text-xs">📍</span>
                               </div>
-
-                              {(hasImage || positionMode) && previewVerticalMode === "below" && (
-                                <div className="pointer-events-none relative mt-1.5 overflow-hidden sm:mt-2">
+                              {previewVerticalMode === "below" && (
+                                <div className="pointer-events-none relative mt-1.5 overflow-hidden">
                                   <div className="rounded-full bg-[linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,0.18)_14%,rgba(0,0,0,0.14)_86%,rgba(0,0,0,0))] px-1 py-1 backdrop-blur-sm">
-                                    <p className="artwork-subtitle-pill whitespace-nowrap px-2 text-[10px] leading-[1.35] text-white/74 sm:text-[12px]">
-                                      {previewSubtitle?.text ??
-                                        (positionMode
-                                          ? "拖到你想放的位置"
-                                          : "点一下，听听这张作品里留下的话。")}
-                                    </p>
+                                    <p className="artwork-subtitle-pill whitespace-nowrap px-2 text-[10px] leading-[1.35] text-white/74">拖到你想放的位置</p>
                                   </div>
                                 </div>
                               )}

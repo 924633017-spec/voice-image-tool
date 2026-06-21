@@ -760,7 +760,7 @@ export function EditorClient({ project }: { project: Proj }) {
     : "一张图，一段录音，一条字幕，最后会变成一张能分享的作品卡。";
   const stagePills = [
     { label: "图片", value: hasImage ? "已放入" : "等待中" },
-    { label: "录音段", value: `${recordedCount} / ${spots.length}` },
+    { label: "录音", value: `${recordedCount} / ${spots.length}` },
   ];
 
   function triggerImagePicker() {
@@ -987,7 +987,7 @@ export function EditorClient({ project }: { project: Proj }) {
 
   async function deleteSpot(id: string) {
     if (spots.length <= 1) return;
-    if (!confirm("确定删除这个录音段？")) return;
+    if (!confirm("确定删除这个录音？")) return;
     const nextSpots = spots.filter((s) => s.id !== id);
     setSpots(nextSpots);
     if (selectedId === id) setSelectedId(nextSpots[0]?.id ?? null);
@@ -1551,7 +1551,7 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                           </div>
                           {spots.length > 1 && (
                             <div className="rounded-full border border-white/10 bg-black/24 px-3 py-2 text-[11px] tracking-[0.14em] text-white/56 uppercase backdrop-blur-xl">
-                              录音段 · {String(spots.length).padStart(2, "0")}
+                              {String(spots.length).padStart(2, "0")} 个录音点
                             </div>
                           )}
                         </div>
@@ -1650,7 +1650,6 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                                 ? "0 0 0 8px rgba(24,24,22,0.06), 0 18px 40px rgba(0,0,0,0.1)"
                                 : "0 8px 24px rgba(0,0,0,0.08)",
                             }}
-                            title={spot.title}
                           >
                             <span
                               className="flex h-6.5 w-6.5 items-center justify-center rounded-full text-[10px] font-semibold text-white"

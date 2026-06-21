@@ -711,6 +711,7 @@ export function EditorClient({ project }: { project: Proj }) {
   );
   const [positionMode, setPositionMode] = useState(false);
   const [isDraggingPlayer, setIsDraggingPlayer] = useState(false);
+  const [draggingSpotId, setDraggingSpotId] = useState<string | null>(null);
   const [speechSupported] = useState(() => {
     if (typeof window === "undefined") return false;
     const win = window as Window & typeof globalThis & {
@@ -983,9 +984,9 @@ export function EditorClient({ project }: { project: Proj }) {
     createCue({
       x: Math.round((((event.clientX - bounds.left) / bounds.width) * 10000)) / 100,
       y: Math.round((((event.clientY - bounds.top) / bounds.height) * 10000)) / 100,
-      title: spots.length === 0 ? "本人录音" : `录音 ${spots.length}`,
+      title: `录音 ${spots.length + 1}`,
     });
-    toast.success(`已添加录音位置 ${spots.length + 1}`);
+    toast.success(`已添加录音 ${spots.length + 1}`);
   }
 
   function deleteSpot(id: string) {
@@ -1225,6 +1226,29 @@ export function EditorClient({ project }: { project: Proj }) {
     setShowShare(true);
   }
 
+  function handleSpotDragStart(spotId: string, event: React.PointerEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    setDraggingSpotId(spotId);
+    artworkFrameRef.current?.setPointerCapture(event.pointerId);
+  }
+
+  function handleSpotDragMove(event: React.PointerEvent) {
+    if (!draggingSpotId || !artworkFrameRef.current) return;
+    const pos = getPositionFromClientPoint(event.clientX, event.clientY);
+    if (!pos) return;
+    setSpots((prev) =>
+      prev.map((s) => (s.id === draggingSpotId ? { ...s, x: pos.x, y: pos.y } : s))
+    );
+  }
+
+  function handleSpotDragEnd(event: React.PointerEvent) {
+    if (artworkFrameRef.current?.hasPointerCapture(event.pointerId)) {
+      artworkFrameRef.current.releasePointerCapture(event.pointerId);
+    }
+    setDraggingSpotId(null);
+  }
+
   async function downloadHtml() {
     const loadingId = toast.loading("正在生成作品文件…");
 
@@ -1435,9 +1459,9 @@ export function EditorClient({ project }: { project: Proj }) {
                       <div
                         ref={artworkFrameRef}
                         onClick={positionMode ? updatePlayerPosition : showAdvanced ? addSpot : undefined}
-                        onPointerMove={handleArtworkPointerMove}
-                        onPointerUp={handleArtworkPointerUp}
-                        onPointerCancel={handleArtworkPointerUp}
+                        onPointerMove={(e) => { handleArtworkPointerMove(e); handleSpotDragMove(e); }}
+                        onPointerUp={(e) => { handleArtworkPointerUp(e); handleSpotDragEnd(e); }}
+                        onPointerCancel={(e) => { handleArtworkPointerUp(e); handleSpotDragEnd(e); }}
                         className={`relative z-10 overflow-hidden rounded-[1.35rem] border border-white/8 bg-black/12 shadow-[0_24px_80px_rgba(0,0,0,0.24)] sm:rounded-[1.8rem] ${
                           positionMode || showAdvanced ? "cursor-crosshair" : ""
                         }`}

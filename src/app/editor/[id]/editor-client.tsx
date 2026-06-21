@@ -1534,12 +1534,13 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                           />
                         </div>
 
-                        {/* Multi-spot players: each spot with audio gets its own play button + subtitle */}
-                        {spots.filter(s => s.audio).map((spot) => {
+                        {/* All spots get a button: ▶ if has audio, 🎤 if not */}
+                        {spots.map((spot) => {
+                          const hasAudio = Boolean(spot.audio);
                           const isPlayingThis = playingId === spot.id;
-                          const currentSub = spot.audio?.subtitles.find(
+                          const currentSub = hasAudio && isPlayingThis ? spot.audio?.subtitles.find(
                             s => previewTime >= s.startTime && previewTime < s.endTime
-                          );
+                          ) : null;
                           const anchorX = spot.x >= 78 ? "right" : spot.x <= 18 ? "left" : "center";
                           const verticalMode = spot.y >= 78 ? "above" : "below";
                           const tx = anchorX === "right" ? "-100%" : anchorX === "center" ? "-50%" : "0%";
@@ -1564,18 +1565,24 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                                   </div>
                                 )}
                                 <button
-                                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (!spotDragMovedRef.current) { setSelectedId(spot.id); togglePreviewAudio(spot); } }}
-                                  className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.05))] px-2.5 py-2 backdrop-blur-xl shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.2),rgba(255,255,255,0.08))] transition-all active:scale-95"
+                                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (spotDragMovedRef.current) return; setSelectedId(spot.id); if (hasAudio) { togglePreviewAudio(spot); } else { document.getElementById("record-panel")?.scrollIntoView({ behavior: "smooth" }); } }}
+                                  className={`pointer-events-auto inline-flex items-center gap-1.5 rounded-full border px-2.5 py-2 backdrop-blur-xl shadow-[0_6px_16px_rgba(0,0,0,0.12)] transition-all active:scale-95 ${
+                                    hasAudio ? "border-white/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.05))] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.2),rgba(255,255,255,0.08))]" : "border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))]"
+                                  }`}
                                 >
-                                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white" style={{ background: spot.color }}>
-                                    {isPlayingThis ? (
-                                      <span className="flex gap-[2px]"><span className="h-3 w-0.5 rounded-full bg-white"/><span className="h-3 w-0.5 rounded-full bg-white"/></span>
+                                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white" style={{ background: hasAudio ? spot.color : "rgba(255,255,255,0.15)" }}>
+                                    {hasAudio ? (
+                                      isPlayingThis ? (
+                                        <span className="flex gap-[2px]"><span className="h-3 w-0.5 rounded-full bg-white"/><span className="h-3 w-0.5 rounded-full bg-white"/></span>
+                                      ) : (
+                                        <span className="ml-0.5 h-0 w-0 border-y-[4px] border-l-[7px] border-y-transparent border-l-white"/>
+                                      )
                                     ) : (
-                                      <span className="ml-0.5 h-0 w-0 border-y-[4px] border-l-[7px] border-y-transparent border-l-white"/>
+                                      <span className="text-[10px]">🎤</span>
                                     )}
                                   </span>
                                   <span className="text-[10px] font-medium text-white/40">{String(spots.findIndex(s => s.id === spot.id) + 1).padStart(2, "0")}</span>
-                                  {isPlayingThis && spot.audio && (
+                                  {isPlayingThis && hasAudio && spot.audio && (
                                     <div className="flex items-center gap-[2px]">
                                       {[0.4,0.7,0.54,0.86,0.46,0.34,0.6,0.48].map((h, i) => {
                                         const p = previewTime / spot.audio!.duration;
@@ -1600,15 +1607,9 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                       {spots.map((spot, index) => {
                         const isSelected = selectedId === spot.id;
                         return (
-                          <button
+                          <div
                             key={spot.id}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setSelectedId(spot.id);
-                            }}
-                            className={`hotspot-marker hotspot-core absolute z-20 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 ${
-                              isSelected ? "active" : ""
-} opacity-100"}`}
+                            className="pointer-events-none absolute z-20 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 opacity-100"
                             style={{
                               left: `${spot.x}%`,
                               top: `${spot.y}%`,
@@ -1624,7 +1625,7 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                             >
                               {String(index + 1).padStart(2, "0")}
                             </span>
-                          </button>
+                          </div>
                         );
                       })}
                     </div>

@@ -827,10 +827,11 @@ export function EditorClient({ project }: { project: Proj }) {
     }, 120);
   }
 
-  async function handlePreviewStep() {
+  function handlePreviewStep() {
     if (!canPreview) return;
-    await persistCurrentProjectState();
-    window.open(`/play/${project.id}?from=editor`, "_blank");
+    const url = `/play/${project.id}?from=editor`;
+    window.open(url, "_blank");
+    persistCurrentProjectState(); // fire-and-forget
   }
 
   async function handleShareStep() {

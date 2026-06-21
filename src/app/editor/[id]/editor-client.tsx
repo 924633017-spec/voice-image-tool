@@ -766,8 +766,7 @@ export function EditorClient({ project }: { project: Proj }) {
     : "一张图，一段录音，一条字幕，最后会变成一张能分享的作品卡。";
   const stagePills = [
     { label: "图片", value: hasImage ? "已放入" : "等待中" },
-    { label: "录音", value: recordingProgressLabel(recordedCount, spots.length) },
-    { label: "播放位", value: playerReady ? "已定位" : "待定位" },
+    { label: "录音段", value: `${recordedCount} / ${spots.length}` },
   ];
 
   function triggerImagePicker() {
@@ -994,11 +993,14 @@ export function EditorClient({ project }: { project: Proj }) {
     toast.success(`已添加录音 ${spots.length + 1}`);
   }
 
-  function deleteSpot(id: string) {
-    const nextSpots = spots.filter((spot) => spot.id !== id);
+  async function deleteSpot(id: string) {
+    if (spots.length <= 1) return;
+    if (!confirm("确定删除这个录音段？")) return;
+    const nextSpots = spots.filter((s) => s.id !== id);
     setSpots(nextSpots);
     if (selectedId === id) setSelectedId(nextSpots[0]?.id ?? null);
     if (playingId === id) setPlayingId(null);
+    await persistProjectState(nextSpots);
   }
 
   async function startRecording() {
@@ -1163,12 +1165,7 @@ export function EditorClient({ project }: { project: Proj }) {
       setLiveSubs([]);
       toast.dismiss(savingId);
 
-      if (recordedCount === 0 && !parsedSettings.playerPosition) {
-        setPositionMode(true);
-        toast.success("录音已保存！请在作品上点击放下播放键的位置。", { duration: 5000 });
-      } else {
-        toast.success(`录音已保存${subtitles.length > 0 ? `，识别出 ${subtitles.length} 句字幕` : ""}`);
-      }
+      toast.success(`录音已保存${subtitles.length > 0 ? `，识别出 ${subtitles.length} 句字幕` : ""}`);
     } catch (err) {
       toast.dismiss(savingId);
       toast.error(`保存失败: ${err instanceof Error ? err.message : "网络错误"}`);
@@ -1540,11 +1537,24 @@ export function EditorClient({ project }: { project: Proj }) {
                                 )}
                                 <button
                                   onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (!spotDragMovedRef.current) { setSelectedId(spot.id); togglePreviewAudio(spot); } }}
-                                  className="pointer-events-auto inline-flex items-center gap-1 rounded-full border border-white/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.05))] px-2 py-1.5 backdrop-blur-xl shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.2),rgba(255,255,255,0.08))] transition-all"
+                                  className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.05))] px-2.5 py-2 backdrop-blur-xl shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.2),rgba(255,255,255,0.08))] transition-all active:scale-95"
                                 >
-                                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white" style={{ background: spot.color }}>
-                                    {isPlayingThis ? "⏸" : "▶"}
+                                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white" style={{ background: spot.color }}>
+                                    {isPlayingThis ? (
+                                      <span className="flex gap-[2px]"><span className="h-3 w-0.5 rounded-full bg-white"/><span className="h-3 w-0.5 rounded-full bg-white"/></span>
+                                    ) : (
+                                      <span className="ml-0.5 h-0 w-0 border-y-[4px] border-l-[7px] border-y-transparent border-l-white"/>
+                                    )}
                                   </span>
+                                  <span className="text-[10px] font-medium text-white/40">{String(spots.findIndex(s => s.id === spot.id) + 1).padStart(2, "0")}</span>
+                                  {isPlayingThis && spot.audio && (
+                                    <div className="flex items-center gap-[2px]">
+                                      {[0.4,0.7,0.54,0.86,0.46,0.34,0.6,0.48].map((h, i) => {
+                                        const p = previewTime / spot.audio!.duration;
+                                        return <span key={i} className="w-[2px] rounded-full transition-all duration-150" style={{ height: `${4+h*10}px`, background: p >= i/8 ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.2)" }}/>;
+                                      })}
+                                    </div>
+                                  )}
                                 </button>
                                 {verticalMode === "below" && currentSub && (
                                   <div className="pointer-events-none relative mt-1 overflow-hidden">

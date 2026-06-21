@@ -1435,7 +1435,7 @@ export function EditorClient({ project }: { project: Proj }) {
                         onPointerUp={handleArtworkPointerUp}
                         onPointerCancel={handleArtworkPointerUp}
                         className={`relative z-10 overflow-hidden rounded-[1.35rem] border border-white/8 bg-black/12 shadow-[0_24px_80px_rgba(0,0,0,0.24)] sm:rounded-[1.8rem] ${
-                          positionMode ? "cursor-crosshair" : ""
+                          positionMode || showAdvanced ? "cursor-crosshair" : ""
                         }`}
                       >
                         <div className="pointer-events-none absolute inset-x-4 top-4 z-20 flex justify-between gap-3 sm:inset-x-5 sm:top-5">
@@ -1459,13 +1459,15 @@ export function EditorClient({ project }: { project: Proj }) {
                             </div>
                           )}
                         </div>
+                        {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
                         <Image
                           src={imageUrl}
                           alt={title}
+                          draggable={false}
                           width={imageSize?.width ?? 1800}
                           height={imageSize?.height ?? 1400}
                           sizes="(min-width: 1280px) 72vw, (min-width: 1024px) 66vw, 100vw"
-                          className="block max-h-[76vh] max-w-full object-contain"
+                          className="block max-h-[76vh] max-w-full object-contain pointer-events-none select-none"
                         />
 
                         {/* Multi-spot players: each spot with audio gets its own play button + subtitle */}

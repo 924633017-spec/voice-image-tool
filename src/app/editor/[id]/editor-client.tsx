@@ -998,35 +998,43 @@ export function EditorClient({ project }: { project: Proj }) {
         };
       const SpeechRecognition =
         speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
-      speechResultsRef.current = [];
-      setLiveSubs([]);
 
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
         recognition.lang = "zh-CN";
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.onresult = (event: BrowserSpeechRecognitionEvent) => {
-          for (let index = event.resultIndex; index < event.results.length; index += 1) {
-            if (!event.results[index].isFinal) continue;
-            const text = event.results[index][0].transcript.trim();
-            if (!text) continue;
+        recognition.maxAlternatives = 1;
 
-            const elapsed = Date.now() - speechStartRef.current;
-            speechResultsRef.current.push({ text, startTime: elapsed });
-            setLiveSubs((prev) => [
-              ...prev,
-              {
-                id: crypto.randomUUID(),
-                text,
-                startTime: elapsed / 1000 - 1,
-                endTime: elapsed / 1000 + 1,
-              },
-            ]);
+        recognition.onresult = (event: BrowserSpeechRecognitionEvent) => {
+          let interimText = "";
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const text = (event.results[i]?.[0]?.transcript ?? "").trim();
+            if (!text) continue;
+            if (event.results[i].isFinal) {
+              const elapsed = Date.now() - speechStartRef.current;
+              speechResultsRef.current.push({ text, startTime: elapsed });
+              setLiveSubs((prev) => [
+                ...prev,
+                { id: crypto.randomUUID(), text, startTime: elapsed / 1000 - 0.5, endTime: elapsed / 1000 + 1 },
+              ]);
+            } else {
+              interimText += text;
+            }
+          }
+          if (interimText) {
+            setLiveSubs((prev) => {
+              const filtered = prev.filter((s) => !s.id.startsWith("interim-"));
+              return [...filtered, { id: `interim-${Date.now()}`, text: interimText, startTime: 0, endTime: 999 }];
+            });
           }
         };
-        recognition.start();
-        recognitionRef.current = recognition;
+
+        recognition.onerror = (event: Event & { error?: string }) => {
+          if (event.error === "not-allowed") toast.error("语音识别需要麦克风权限");
+        };
+
+        try { recognition.start(); recognitionRef.current = recognition; } catch {}
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });

@@ -149,57 +149,28 @@ function splitSubtitlePhrase(text: string) {
 }
 
 function buildTimedSubtitles(rawResults: { text: string; startTime: number }[], finalDuration: number): Sub[] {
-  const sanitized = rawResults
-    .flatMap((item) =>
-      splitSubtitlePhrase(item.text).map((text) => ({
-        text,
-        sourceStart: Math.max(0, item.startTime / 1000),
-      })),
-    )
-    .filter((item) => item.text);
+  // Combine all recognized text, split by punctuation
+  const fullText = rawResults.map((r) => r.text).join("");
+  const chunks = fullText
+    .split(/(?<=[。，！？,.!?;；、])/g)
+    .map((t) => t.trim())
+    .filter(Boolean);
 
-  if (sanitized.length === 0) {
+  if (chunks.length === 0) {
     return [
-      {
-        id: crypto.randomUUID(),
-        text: "（未识别到语音，可稍后手动调整字幕文案）",
-        startTime: 0,
-        endTime: finalDuration,
-      },
+      { id: crypto.randomUUID(), text: "（未识别到语音）", startTime: 0, endTime: finalDuration },
     ];
   }
 
-  const totalChars = sanitized.reduce((sum, item) => sum + item.text.length, 0) || sanitized.length;
-
-  return sanitized.map((item, index) => {
-    const weight = Math.max(1, item.text.length);
-    const weightedDuration = (finalDuration * weight) / totalChars;
-    const nextItem = sanitized[index + 1];
-    const startTime =
-      index === 0
-        ? 0
-        : Math.max(0, Math.min(finalDuration - 0.2, item.sourceStart));
-
-    let endTime: number;
-    if (nextItem) {
-      const nextStart = Math.max(startTime + 0.32, nextItem.sourceStart);
-      endTime = Math.min(
-        finalDuration,
-        Math.max(startTime + 0.52, Math.min(nextStart - 0.08, startTime + weightedDuration)),
-      );
-    } else {
-      endTime = finalDuration;
-    }
-
-    return {
-      id: crypto.randomUUID(),
-      text: item.text,
-      startTime: Number(startTime.toFixed(2)),
-      endTime:
-        endTime <= startTime
-          ? Number(Math.min(finalDuration, startTime + 0.6).toFixed(2))
-          : Number(endTime.toFixed(2)),
-    };
+  // Distribute evenly by character weight (browser STT timestamps are unreliable)
+  const totalChars = chunks.reduce((sum, t) => sum + t.length, 0) || chunks.length;
+  let cursor = 0;
+  return chunks.map((text) => {
+    const dur = (text.length / totalChars) * finalDuration;
+    const startTime = Number(cursor.toFixed(2));
+    cursor += dur;
+    const endTime = Number(Math.min(finalDuration, cursor).toFixed(2));
+    return { id: crypto.randomUUID(), text, startTime, endTime };
   });
 }
 
@@ -207,30 +178,26 @@ function buildSubtitlesFromSegments(
   segments: Array<{ text: string; startTime: number; endTime: number }>,
   fallbackDuration: number,
 ): Sub[] {
-  const normalized = segments
-    .map((segment) => ({
-      text: segment.text.trim(),
-      startTime: Math.max(0, segment.startTime),
-      endTime: Math.max(segment.startTime, segment.endTime),
-    }))
-    .filter((segment) => segment.text);
+  const valid = segments
+    .filter((s) => s.text.trim())
+    .map((s) => ({
+      text: s.text.trim(),
+      startTime: Math.max(0, s.startTime),
+      endTime: Math.max(s.startTime + 0.5, s.endTime),
+    }));
 
-  if (normalized.length === 0) {
-    return buildTimedSubtitles([], fallbackDuration);
-  }
+  if (valid.length === 0) return buildTimedSubtitles([], fallbackDuration);
 
-  return normalized.map((segment, index) => {
-    const nextStart = normalized[index + 1]?.startTime;
-    const endTime =
-      nextStart !== undefined
-        ? Math.max(segment.startTime + 0.36, Math.min(segment.endTime, nextStart - 0.06))
-        : Math.max(segment.startTime + 0.45, Math.min(fallbackDuration, segment.endTime || fallbackDuration));
-
+  return valid.map((s, i) => {
+    const nextStart = valid[i + 1]?.startTime;
+    const endTime = nextStart != null
+      ? Math.min(s.endTime, nextStart - 0.05)
+      : Math.min(s.endTime, fallbackDuration);
     return {
       id: crypto.randomUUID(),
-      text: segment.text,
-      startTime: Number(segment.startTime.toFixed(2)),
-      endTime: Number(Math.max(segment.startTime + 0.3, endTime).toFixed(2)),
+      text: s.text,
+      startTime: Number(s.startTime.toFixed(2)),
+      endTime: Number(Math.max(s.startTime + 0.3, endTime).toFixed(2)),
     };
   });
 }

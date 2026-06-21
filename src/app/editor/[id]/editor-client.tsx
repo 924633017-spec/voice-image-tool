@@ -692,7 +692,7 @@ export function EditorClient({ project }: { project: Proj }) {
   const [imageUrl, setImageUrl] = useState<string | null>(project.coverImage);
   const [spots, setSpots] = useState<Spot[]>(project.hotspots);
   const [selectedId, setSelectedId] = useState<string | null>(project.hotspots[0]?.id ?? null);
-  const [showAdvanced, setShowAdvanced] = useState(true); // 默认开启多点讲解
+  const [showAdvanced, setShowAdvanced] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -980,7 +980,7 @@ export function EditorClient({ project }: { project: Proj }) {
     createCue({
       x: Math.round((((event.clientX - bounds.left) / bounds.width) * 10000)) / 100,
       y: Math.round((((event.clientY - bounds.top) / bounds.height) * 10000)) / 100,
-      title: spots.length === 0 ? "本人录音" : `补充录音 ${spots.length}`,
+      title: spots.length === 0 ? "本人录音" : `录音 ${spots.length}`,
     });
   }
 
@@ -1293,7 +1293,7 @@ export function EditorClient({ project }: { project: Proj }) {
       key: "record",
       label: "02",
       title: "录音",
-      desc: recordedCount > 0 ? "声音已留下" : "录下这段讲述",
+      desc: recordedCount > 0 ? "声音已留下" : "录下这段话",
       action: selectedSpot?.audio ? "重新录音" : "开始录音",
       disabled: false,
     },
@@ -1406,7 +1406,7 @@ export function EditorClient({ project }: { project: Proj }) {
                       }}
                       className="ghost-button ghost-button-dark rounded-full px-4 py-2 text-sm font-medium"
                     >
-                      {showAdvanced ? "收起多段" : "多段录音"}
+                      {showAdvanced ? "收起" : "多点录音"}
                     </button>
                     <button
                       onClick={handlePositionModeToggle}
@@ -1442,20 +1442,20 @@ export function EditorClient({ project }: { project: Proj }) {
                           <div className="flex flex-col gap-1.5">
                             <div className="max-w-[18rem] rounded-full border border-white/10 bg-black/24 px-3 py-2 text-[11px] tracking-[0.14em] text-white/56 uppercase backdrop-blur-xl">
                               {recordedCount > 0
-                                ? "点一下图上编号圆圈切换讲解点，试听或补录"
+                                ? "点一下图上编号切换录音段，试听或继续录"
                                 : positionMode
                                   ? "在作品上点一下，放下播放键"
                                   : "先录一段你的讲述"}
                             </div>
                             {spots.length > 1 && (
                               <div className="max-w-[16rem] rounded-full border border-white/10 bg-black/24 px-3 py-2 text-[10px] tracking-[0.14em] text-white/40 uppercase backdrop-blur-xl">
-                                点击图上任意位置可添加新讲解点
+                                点图上任意位置添加录音段
                               </div>
                             )}
                           </div>
                           {showAdvanced && spots.length > 1 && (
                             <div className="rounded-full border border-white/10 bg-black/24 px-3 py-2 text-[11px] tracking-[0.14em] text-white/56 uppercase backdrop-blur-xl">
-                              多段 · {String(spots.length).padStart(2, "0")}
+                              录音段 · {String(spots.length).padStart(2, "0")}
                             </div>
                           )}
                         </div>
@@ -1641,7 +1641,7 @@ export function EditorClient({ project }: { project: Proj }) {
                     }}
                     className="ghost-button ghost-button-dark rounded-full px-4 py-3 text-sm font-medium"
                   >
-                    {showAdvanced ? "收起多段" : "多段录音"}
+                    {showAdvanced ? "收起" : "多点录音"}
                   </button>
                   <button
                     onClick={handlePositionModeToggle}
@@ -1701,7 +1701,7 @@ export function EditorClient({ project }: { project: Proj }) {
               {selectedSpot && (
               <section id="record-panel-mobile" className="premium-shell rounded-[1.6rem] p-4 sm:rounded-[2rem]">
                 <div className="rounded-[1.35rem] bg-white/[0.03] px-4 py-4 sm:rounded-[1.7rem]">
-                    <p className="eyebrow">{selectedSpot === primarySpot ? "这段声音" : "补充段落"}</p>
+                    <p className="eyebrow">{selectedSpot === primarySpot ? "录音" : "录音段"}</p>
                     <h2 className="display-title mt-4 text-[2rem] leading-[0.88] text-white">{selectedSpot.title}</h2>
                     <p className="mt-3 text-sm leading-6 text-white/46">说完这一句，它就会直接贴在作品上。</p>
 
@@ -1820,7 +1820,7 @@ export function EditorClient({ project }: { project: Proj }) {
               <section className="premium-shell rounded-[2.4rem] p-5">
                 <div className="mb-4">
                   <p className="eyebrow">多段</p>
-                  <h2 className="mt-3 text-[1.3rem] font-medium tracking-[-0.05em] text-white">补充讲述</h2>
+                  <h2 className="mt-3 text-[1.3rem] font-medium tracking-[-0.05em] text-white">录音</h2>
                 </div>
                 <div className="mt-4 space-y-3">
                   {spots.map((spot, index) => {
@@ -1867,7 +1867,7 @@ export function EditorClient({ project }: { project: Proj }) {
                           )}
                         </div>
                         <div className="mt-3 text-xs leading-6 text-white/42">
-                          {spot.audio ? `${formatSeconds(spot.audio.duration)} · ${spot.audio.subtitles.length} 句讲述` : "尚未录音"}
+                          {spot.audio ? `${formatSeconds(spot.audio.duration)} · ${spot.audio.subtitles.length} 句` : "尚未录音"}
                         </div>
                       </div>
                     );
@@ -1879,7 +1879,7 @@ export function EditorClient({ project }: { project: Proj }) {
             {selectedSpot && (
               <section id="record-panel" className="premium-shell rounded-[2.4rem] p-5">
                 <div className="rounded-[2rem] bg-white/[0.03] px-5 py-5">
-                  <p className="eyebrow">{selectedSpot === primarySpot ? "这段声音" : "补充段落"}</p>
+                  <p className="eyebrow">{selectedSpot === primarySpot ? "录音" : "录音段"}</p>
                   <h2 className="display-title mt-4 text-[2.4rem] leading-[0.84] text-white">
                     {selectedSpot.title}
                   </h2>

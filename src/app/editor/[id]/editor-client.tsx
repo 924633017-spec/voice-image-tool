@@ -953,7 +953,6 @@ export function EditorClient({ project }: { project: Proj }) {
   }
 
   async function deleteSpot(id: string) {
-    if (spots.length <= 1) return;
     if (!confirm("确定删除这个录音？")) return;
     const nextSpots = spots.filter((s) => s.id !== id);
     setSpots(nextSpots);

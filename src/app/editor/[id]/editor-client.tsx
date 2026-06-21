@@ -975,13 +975,17 @@ export function EditorClient({ project }: { project: Proj }) {
   }
 
   function addSpot(event: React.MouseEvent) {
-    if (!artworkFrameRef.current || recording || !imageUrl || positionMode) return;
+    if (positionMode) return;
+    if (recording) { toast.error("请先停止录音"); return; }
+    if (!imageUrl) { toast.error("请先上传图片"); return; }
+    if (!artworkFrameRef.current) return;
     const bounds = artworkFrameRef.current.getBoundingClientRect();
     createCue({
       x: Math.round((((event.clientX - bounds.left) / bounds.width) * 10000)) / 100,
       y: Math.round((((event.clientY - bounds.top) / bounds.height) * 10000)) / 100,
       title: spots.length === 0 ? "本人录音" : `录音 ${spots.length}`,
     });
+    toast.success(`已添加录音位置 ${spots.length + 1}`);
   }
 
   function deleteSpot(id: string) {
@@ -1459,7 +1463,6 @@ export function EditorClient({ project }: { project: Proj }) {
                             </div>
                           )}
                         </div>
-                        {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
                         <Image
                           src={imageUrl}
                           alt={title}
@@ -1467,7 +1470,8 @@ export function EditorClient({ project }: { project: Proj }) {
                           width={imageSize?.width ?? 1800}
                           height={imageSize?.height ?? 1400}
                           sizes="(min-width: 1280px) 72vw, (min-width: 1024px) 66vw, 100vw"
-                          className="block max-h-[76vh] max-w-full object-contain pointer-events-none select-none"
+                          className="block max-h-[76vh] max-w-full object-contain"
+                          style={{ pointerEvents: "none", userSelect: "none" }}
                         />
 
                         {/* Multi-spot players: each spot with audio gets its own play button + subtitle */}

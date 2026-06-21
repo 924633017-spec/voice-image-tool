@@ -18,17 +18,7 @@ type DashboardProject = {
 };
 
 function canPlayProject(project: DashboardProject) {
-  const audioCount = project.hotspots.filter((hotspot) => hotspot.audio).length;
-
-  try {
-    const settings = JSON.parse(project.settings || "{}") as {
-      playerPosition?: { x: number; y: number };
-    };
-
-    return Boolean(project.coverImage && audioCount > 0 && settings.playerPosition);
-  } catch {
-    return Boolean(project.coverImage && audioCount > 0);
-  }
+  return Boolean(project.coverImage && project.hotspots.some((h) => h.audio));
 }
 
 function displayProjectTitle(project: Pick<DashboardProject, "title" | "coverImage" | "hotspots">) {
@@ -51,22 +41,10 @@ function formatRelative(date: Date) {
 }
 
 function projectState(project: DashboardProject) {
-  const audioCount = project.hotspots.filter((hotspot) => hotspot.audio).length;
-  const hasHotspots = project.hotspots.length > 0;
-  let playerPositionReady = false;
-
-  try {
-    const settings = JSON.parse(project.settings || "{}") as {
-      playerPosition?: { x: number; y: number };
-    };
-    playerPositionReady = Boolean(settings.playerPosition);
-  } catch {}
-
+  const audioCount = project.hotspots.filter((h) => h.audio).length;
   if (!project.coverImage) return "待放图";
-  if (!hasHotspots) return "待落点";
   if (audioCount === 0) return "待录音";
-  if (!playerPositionReady) return "待定位";
-  return "可分享";
+  return `${audioCount} 段录音`;
 }
 
 function ProjectCard({ project }: { project: DashboardProject }) {

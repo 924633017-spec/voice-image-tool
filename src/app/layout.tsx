@@ -52,6 +52,11 @@ export default function RootLayout({
           {children}
           <Toaster />
         </TooltipProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`,
+          }}
+        />
       </body>
     </html>
   );

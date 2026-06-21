@@ -1265,6 +1265,72 @@ export function EditorClient({ project }: { project: Proj }) {
     spotDragStartPos.current = null;
   }
 
+  function buildExportHtmlV2({
+    imageBase64, exportTitle, imageWidth, imageHeight, spotsJson,
+  }: { imageBase64: string; exportTitle: string; imageWidth: number; imageHeight: number; spotsJson: string }) {
+    return `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"><meta name="color-scheme" content="dark"><title>${exportTitle}</title><style>
+:root{color-scheme:dark}*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(circle at top,rgba(255,255,255,.06),transparent 18%),linear-gradient(180deg,#060606 0%,#090909 100%);color:#fff}
+.viewport{min-height:100vh;padding:clamp(12px,2.8vw,28px);display:grid;place-items:center}
+.stage-shell{width:min(100%,${imageWidth}px)}.stage{position:relative;width:100%;aspect-ratio:${imageWidth}/${imageHeight}}
+.artwork{position:relative;width:100%;height:100%;overflow:hidden;border-radius:clamp(18px,2.2vw,30px);background:#0d0d0d;box-shadow:0 28px 80px rgba(0,0,0,.34)}
+.artwork img{display:block;width:100%;height:100%;object-fit:fill}
+.sp{position:absolute;z-index:3;display:flex;flex-direction:column;gap:2px}
+.sp[data-a="left"]{transform:translate(0,-50%);align-items:flex-start}
+.sp[data-a="center"]{transform:translate(-50%,-50%);align-items:center}
+.sp[data-a="right"]{transform:translate(-100%,-50%);align-items:flex-end}
+.sr{position:relative;overflow:hidden;max-width:260px;mask-image:linear-gradient(90deg,transparent 0%,black 8%,black 92%,transparent 100%);-webkit-mask-image:linear-gradient(90deg,transparent 0%,black 8%,black 92%,transparent 100%)}
+.st{position:relative;width:max-content;white-space:nowrap;font-size:13px;line-height:1.32;color:rgba(255,255,255,.76);text-shadow:0 4px 16px rgba(0,0,0,.38)}
+.st span{transition:color .18s ease}
+.ct{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.04));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 8px 18px rgba(0,0,0,.06)}
+.pb{appearance:none;border:0;width:26px;height:26px;border-radius:999px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.66));box-shadow:0 6px 16px rgba(255,255,255,.1);color:#090909;flex:0 0 auto;transition:transform .24s ease}
+.pb:active{transform:scale(.96)}.pi{width:0;height:0;margin-left:1px;border-top:4.5px solid transparent;border-bottom:4.5px solid transparent;border-left:7px solid #090909}
+.pa{display:flex;gap:2px}.pa span{display:block;width:2px;height:10px;border-radius:999px;background:#090909}
+.wv{display:flex;align-items:center;gap:2px}.wv span{display:block;width:2.2px;border-radius:999px;background:rgba(255,255,255,.24);transition:background .16s ease,height .16s ease}
+.sg{font-size:9px;font-weight:600;color:rgba(255,255,255,.35)}
+</style></head><body><div class="viewport"><main class="stage-shell"><section class="stage"><div class="artwork"><img src="${imageBase64}" alt="${exportTitle}"><div id="pc"></div></div></section></main></div>
+<script>
+const S=${spotsJson};
+const A={},P={},T={};
+function f(v){const s=Math.max(0,Math.floor(v));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function r(s,c){
+  if(!s.audio)return;
+  const ax=s.x>=78?"right":s.x<=18?"left":"center";
+  const vm=s.y>=78?"above":"below";
+  const w=document.createElement("div");w.className="sp";w.setAttribute("data-a",ax);
+  w.style.left=s.x+"%";w.style.top=s.y+"%";
+  const sr=document.createElement("div");sr.className="sr";
+  const se=document.createElement("p");se.className="st";se.textContent="点一下播放";
+  const ct=document.createElement("div");ct.className="ct";
+  const pb=document.createElement("button");pb.className="pb";pb.innerHTML='<span class="pi"></span>';
+  const wv=document.createElement("div");wv.className="wv";
+  for(let i=0;i<8;i++){const b=document.createElement("span");b.style.height="4px";wv.appendChild(b)}
+  const sg=document.createElement("span");sg.className="sg";sg.textContent=String(S.indexOf(s)+1).padStart(2,"0");
+  ct.appendChild(pb);ct.appendChild(wv);ct.appendChild(sg);
+  if(vm==="above"){w.appendChild(sr);w.appendChild(ct)}else{w.appendChild(ct);w.appendChild(sr)}
+  c.appendChild(w);
+  const a=new Audio(s.audio.url);A[s.audio.id]=a;P[s.audio.id]=false;T[s.audio.id]=0;
+  a.addEventListener("timeupdate",()=>{
+    T[s.audio.id]=a.currentTime;
+    const cs=s.audio.subs.find(x=>a.currentTime>=x.startTime&&a.currentTime<x.endTime);
+    const el=sr.querySelector(".st");
+    if(cs){el.innerHTML="";const t=cs.text.length||1;const pc=(cs.endTime-cs.startTime)/t;
+      cs.text.split("").forEach((ch,i)=>{const c1=cs.startTime+i*pc,c2=c1+pc;const cur=a.currentTime>=c1&&a.currentTime<c2;const past=a.currentTime>=c2;
+        const sp=document.createElement("span");sp.textContent=ch;
+        sp.style.color=cur?"#fff":past?"rgba(255,255,255,.74)":"rgba(255,255,255,.3)";sp.style.textShadow=cur?"0 0 10px rgba(255,255,255,.16)":"none";el.appendChild(sp)})
+    }else{el.textContent="点一下播放"}
+    const bs=wv.querySelectorAll("span");const hh=[0.4,0.7,0.54,0.86,0.46,0.34,0.6,0.48];const p=a.currentTime/s.audio.dur;
+    bs.forEach((b,i)=>{b.style.height=(4+hh[i]*10)+"px";b.style.background=p>=i/8?"rgba(255,255,255,.9)":"rgba(255,255,255,.22)"})
+  });
+  a.addEventListener("play",()=>{P[s.audio.id]=true;pb.innerHTML='<span class="pa"><span></span><span></span></span>'});
+  a.addEventListener("pause",()=>{P[s.audio.id]=false;pb.innerHTML='<span class="pi"></span>'});
+  a.addEventListener("ended",()=>{P[s.audio.id]=false;T[s.audio.id]=s.audio.dur;pb.innerHTML='<span class="pi"></span>'});
+  pb.addEventListener("click",()=>{if(P[s.audio.id]){a.pause()}else{if(a.ended||a.currentTime>=s.audio.dur-.1)a.currentTime=0;a.play().catch(()=>{})}});
+}
+document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementById("pc");S.forEach(s=>r(s,c))});
+</script></body></html>`;
+  }
+
   async function downloadHtml() {
     const loadingId = toast.loading("正在生成作品文件…");
 
@@ -1298,12 +1364,11 @@ export function EditorClient({ project }: { project: Proj }) {
         })),
       );
 
-      const html = buildExportHtml({
+      const html = buildExportHtmlV2({
         imageBase64,
         exportTitle,
         imageWidth: exportImageWidth,
         imageHeight: exportImageHeight,
-        playerPosition,
         spotsJson,
       });
 

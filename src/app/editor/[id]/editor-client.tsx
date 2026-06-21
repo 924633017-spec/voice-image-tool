@@ -1231,11 +1231,15 @@ export function EditorClient({ project }: { project: Proj }) {
     setShowShare(true);
   }
 
+  const spotDragStartPos = useRef<{ x: number; y: number } | null>(null);
+
   function handleSpotDragStart(spotId: string, event: React.PointerEvent) {
     event.preventDefault();
     event.stopPropagation();
     spotDragMovedRef.current = false;
     setDraggingSpotId(spotId);
+    const spot = spots.find(s => s.id === spotId);
+    spotDragStartPos.current = spot ? { x: spot.x, y: spot.y } : null;
     artworkFrameRef.current?.setPointerCapture(event.pointerId);
   }
 
@@ -1243,10 +1247,17 @@ export function EditorClient({ project }: { project: Proj }) {
     if (!draggingSpotId || !artworkFrameRef.current) return;
     const pos = getPositionFromClientPoint(event.clientX, event.clientY);
     if (!pos) return;
-    spotDragMovedRef.current = true;
-    setSpots((prev) =>
-      prev.map((s) => (s.id === draggingSpotId ? { ...s, x: pos.x, y: pos.y } : s))
-    );
+    // Only mark as dragged if moved more than 1.5% from start
+    if (spotDragStartPos.current) {
+      const dx = Math.abs(pos.x - spotDragStartPos.current.x);
+      const dy = Math.abs(pos.y - spotDragStartPos.current.y);
+      if (dx > 1.5 || dy > 1.5) spotDragMovedRef.current = true;
+    }
+    if (spotDragMovedRef.current) {
+      setSpots((prev) =>
+        prev.map((s) => (s.id === draggingSpotId ? { ...s, x: pos.x, y: pos.y } : s))
+      );
+    }
   }
 
   function handleSpotDragEnd(event: React.PointerEvent) {
@@ -1254,6 +1265,7 @@ export function EditorClient({ project }: { project: Proj }) {
       artworkFrameRef.current.releasePointerCapture(event.pointerId);
     }
     setDraggingSpotId(null);
+    spotDragStartPos.current = null;
   }
 
   async function downloadHtml() {
@@ -1533,7 +1545,6 @@ export function EditorClient({ project }: { project: Proj }) {
                                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white" style={{ background: spot.color }}>
                                     {isPlayingThis ? "⏸" : "▶"}
                                   </span>
-                                  <span className="text-[10px] text-white/70">{spot.title}</span>
                                 </button>
                                 {verticalMode === "below" && currentSub && (
                                   <div className="pointer-events-none relative mt-1 overflow-hidden">

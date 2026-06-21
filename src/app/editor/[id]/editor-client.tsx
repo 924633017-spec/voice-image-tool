@@ -751,12 +751,6 @@ export function EditorClient({ project }: { project: Proj }) {
     (subtitle) => previewTime >= subtitle.startTime && previewTime < subtitle.endTime,
   );
   const previewCompactArtwork = (imageSize?.width ?? 0) > 0 ? (imageSize?.width ?? 0) < 720 : false;
-  const previewAnchorX = playerPosition.x >= 78 ? "right" : playerPosition.x <= 18 ? "left" : "center";
-  const previewVerticalMode = playerPosition.y >= 78 ? "above" : "below";
-  const previewTranslateX =
-    previewAnchorX === "right" ? "-100%" : previewAnchorX === "center" ? "-50%" : "0%";
-  const previewAlignItems =
-    previewAnchorX === "right" ? "flex-end" : previewAnchorX === "center" ? "center" : "flex-start";
   const hasImage = Boolean(imageUrl);
   const playerReady = Boolean(parsedSettings.playerPosition);
   const heroEyebrow = hasImage ? "作品已放入" : "开始制作";
@@ -925,7 +919,6 @@ export function EditorClient({ project }: { project: Proj }) {
       coverImage: nextImageUrl,
       settings: JSON.stringify({
         ...parsedSettings,
-        playerPosition,
         imageSize,
       }),
       hotspots: serializeHotspots(nextSpots),
@@ -964,7 +957,6 @@ export function EditorClient({ project }: { project: Proj }) {
         coverImage: url,
         settings: JSON.stringify({
           ...parsedSettings,
-          playerPosition,
           imageSize: nextImageSize,
         }),
       });
@@ -1636,50 +1628,6 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                             </div>
                           );
                         })}
-                        {/* Position mode drag target */}
-                        {positionMode && (
-                          <div
-                            onPointerDown={handlePlayerDragStart}
-                            className="absolute z-30 cursor-grab active:cursor-grabbing"
-                            style={{
-                              left: `${playerPosition.x}%`,
-                              top: `${playerPosition.y}%`,
-                              transform: `translate(${previewTranslateX}, -50%)`,
-                            }}
-                          >
-                            <div className="flex flex-col" style={{ alignItems: previewAlignItems }}>
-                              {previewVerticalMode === "above" && (
-                                <div className="pointer-events-none relative mb-1.5 overflow-hidden">
-                                  <div className="rounded-full bg-[linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,0.18)_14%,rgba(0,0,0,0.14)_86%,rgba(0,0,0,0))] px-1 py-1 backdrop-blur-sm">
-                                    <p className="artwork-subtitle-pill whitespace-nowrap px-2 text-[10px] leading-[1.35] text-white/74">拖到你想放的位置</p>
-                                  </div>
-                                </div>
-                              )}
-                              <div className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.11),rgba(255,255,255,0.035))] px-2 py-1.5 backdrop-blur-[18px]">
-                                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/30 text-xs">📍</span>
-                              </div>
-                              {previewVerticalMode === "below" && (
-                                <div className="pointer-events-none relative mt-1.5 overflow-hidden">
-                                  <div className="rounded-full bg-[linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,0.18)_14%,rgba(0,0,0,0.14)_86%,rgba(0,0,0,0))] px-1 py-1 backdrop-blur-sm">
-                                    <p className="artwork-subtitle-pill whitespace-nowrap px-2 text-[10px] leading-[1.35] text-white/74">拖到你想放的位置</p>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {positionMode && (
-                          <div
-                            className="pointer-events-none absolute z-20 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-dashed border-white/45 bg-white/8"
-                            style={{
-                              left: `${playerPosition.x}%`,
-                              top: `${playerPosition.y}%`,
-                            }}
-                          >
-                            <span className="h-2 w-2 rounded-full bg-white/85" />
-                          </div>
-                        )}
                       </div>
 
                       {spots.map((spot, index) => {
@@ -1693,7 +1641,7 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                             }}
                             className={`hotspot-marker hotspot-core absolute z-20 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/80 ${
                               isSelected ? "active" : ""
-                            } ${showAdvanced || index === 0 ? "opacity-100" : "pointer-events-none opacity-0"}`}
+} opacity-100"}`}
                             style={{
                               left: `${spot.x}%`,
                               top: `${spot.y}%`,

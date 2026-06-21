@@ -978,6 +978,8 @@ export function EditorClient({ project }: { project: Proj }) {
   }
 
   function addSpot(event: React.MouseEvent) {
+    if (spotDragMovedRef.current) { spotDragMovedRef.current = false; return; }
+    if (draggingSpotId) return;
     if (positionMode) return;
     if (recording) { toast.error("请先停止录音"); return; }
     if (!imageUrl) { toast.error("请先上传图片"); return; }
@@ -1525,7 +1527,7 @@ export function EditorClient({ project }: { project: Proj }) {
                                   </div>
                                 )}
                                 <button
-                                  onClick={(e) => { e.stopPropagation(); if (spotDragMovedRef.current) return; setSelectedId(spot.id); togglePreviewAudio(spot); }}
+                                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (!spotDragMovedRef.current) { setSelectedId(spot.id); togglePreviewAudio(spot); } }}
                                   className="pointer-events-auto inline-flex items-center gap-1 rounded-full border border-white/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.05))] px-2 py-1.5 backdrop-blur-xl shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.2),rgba(255,255,255,0.08))] transition-all"
                                 >
                                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white" style={{ background: spot.color }}>

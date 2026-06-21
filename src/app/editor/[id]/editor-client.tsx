@@ -1558,9 +1558,22 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                             >
                               <div className="flex flex-col max-w-[min(42vw,280px)] sm:max-w-[min(34vw,320px)]" style={{ alignItems: ai }}>
                                 {verticalMode === "above" && currentSub && (
-                                  <div className="pointer-events-none relative mb-1 overflow-hidden">
-                                    <div className="rounded-full bg-[linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,0.18)_14%,rgba(0,0,0,0.14)_86%,rgba(0,0,0,0))] px-1 py-0.5 backdrop-blur-sm">
-                                      <p className="whitespace-nowrap px-1.5 text-[10px] leading-[1.35] text-white/80">{currentSub.text}</p>
+                                  <div className="pointer-events-none relative mb-1 overflow-hidden" style={{ maxWidth: "260px", maskImage: "linear-gradient(90deg,transparent 0%,black 10%,black 90%,transparent 100%)", WebkitMaskImage: "linear-gradient(90deg,transparent 0%,black 10%,black 90%,transparent 100%)" }}>
+                                    <div className="rounded-full bg-[linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,0.18)_14%,rgba(0,0,0,0.14)_86%,rgba(0,0,0,0))] px-1.5 py-0.5 backdrop-blur-sm">
+                                      <p className="whitespace-nowrap text-[11px] leading-[1.35]" style={{
+                                        transform: `translateX(-${Math.max(0, (currentSub.text.length - 8) * (previewTime - currentSub.startTime) / Math.max(0.1, currentSub.endTime - currentSub.startTime)) * 0.6}em)`,
+                                        transition: "transform 0.15s linear",
+                                      }}>
+                                        {currentSub.text.split("").map((char, ci) => {
+                                          const total = currentSub.text.length || 1;
+                                          const pc = (currentSub.endTime - currentSub.startTime) / total;
+                                          const cs = currentSub.startTime + ci * pc;
+                                          const ce = cs + pc;
+                                          const cur = previewTime >= cs && previewTime < ce;
+                                          const past = previewTime >= ce;
+                                          return <span key={ci} style={{ color: cur ? "#fff" : past ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.25)", textShadow: cur ? "0 0 6px rgba(255,255,255,0.2)" : "none" }}>{char}</span>;
+                                        })}
+                                      </p>
                                     </div>
                                   </div>
                                 )}
@@ -1592,9 +1605,22 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                                   )}
                                 </button>
                                 {verticalMode === "below" && currentSub && (
-                                  <div className="pointer-events-none relative mt-1 overflow-hidden">
-                                    <div className="rounded-full bg-[linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,0.18)_14%,rgba(0,0,0,0.14)_86%,rgba(0,0,0,0))] px-1 py-0.5 backdrop-blur-sm">
-                                      <p className="whitespace-nowrap px-1.5 text-[10px] leading-[1.35] text-white/80">{currentSub.text}</p>
+                                  <div className="pointer-events-none relative mt-1 overflow-hidden" style={{ maxWidth: "260px", maskImage: "linear-gradient(90deg,transparent 0%,black 10%,black 90%,transparent 100%)", WebkitMaskImage: "linear-gradient(90deg,transparent 0%,black 10%,black 90%,transparent 100%)" }}>
+                                    <div className="rounded-full bg-[linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,0.18)_14%,rgba(0,0,0,0.14)_86%,rgba(0,0,0,0))] px-1.5 py-0.5 backdrop-blur-sm">
+                                      <p className="whitespace-nowrap text-[11px] leading-[1.35]" style={{
+                                        transform: `translateX(-${Math.max(0, (currentSub.text.length - 8) * (previewTime - currentSub.startTime) / Math.max(0.1, currentSub.endTime - currentSub.startTime)) * 0.6}em)`,
+                                        transition: "transform 0.15s linear",
+                                      }}>
+                                        {currentSub.text.split("").map((char, ci) => {
+                                          const total = currentSub.text.length || 1;
+                                          const pc = (currentSub.endTime - currentSub.startTime) / total;
+                                          const cs = currentSub.startTime + ci * pc;
+                                          const ce = cs + pc;
+                                          const cur = previewTime >= cs && previewTime < ce;
+                                          const past = previewTime >= ce;
+                                          return <span key={ci} style={{ color: cur ? "#fff" : past ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.25)", textShadow: cur ? "0 0 6px rgba(255,255,255,0.2)" : "none" }}>{char}</span>;
+                                        })}
+                                      </p>
                                     </div>
                                   </div>
                                 )}

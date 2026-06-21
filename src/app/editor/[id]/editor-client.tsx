@@ -1430,21 +1430,6 @@ export function EditorClient({ project }: { project: Proj }) {
                         if (file) void uploadFile(file);
                       }}
                     />
-                    <button
-                      onClick={() => {
-                        setShowAdvanced((value) => !value);
-                        if (!showAdvanced && spots.length === 0 && imageUrl) createPrimaryCue();
-                      }}
-                      className="ghost-button ghost-button-dark rounded-full px-4 py-2 text-sm font-medium"
-                    >
-                      {showAdvanced ? "收起" : "多点录音"}
-                    </button>
-                    <button
-                      onClick={handlePositionModeToggle}
-                      className="ghost-button ghost-button-dark rounded-full px-4 py-2 text-sm font-medium"
-                    >
-                      {positionMode ? (isDraggingPlayer ? "拖动中…" : "定位中") : "定位播放键"}
-                    </button>
                     <button onClick={handleShareStep} className="ghost-button ghost-button-dark rounded-full px-4 py-2 text-sm font-medium">分享</button>
                   </div>
                 </div>
@@ -1455,7 +1440,7 @@ export function EditorClient({ project }: { project: Proj }) {
                       hasImage
                         ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.018))] px-2 py-2 shadow-[0_20px_60px_rgba(0,0,0,0.16)]"
                         : "bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] px-3 py-3 shadow-[0_30px_70px_rgba(0,0,0,0.18)]"
-                    } backdrop-blur-md sm:rounded-[2rem] sm:px-4 sm:py-4 ${showAdvanced ? "cursor-crosshair" : "cursor-default"}`}
+                    } backdrop-blur-md sm:rounded-[2rem] sm:px-4 sm:py-4 cursor-crosshair`}
                   >
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.1),transparent_18%)]" />
                     <div className="relative flex min-h-[46vh] items-center justify-center sm:min-h-[64vh] lg:min-h-[72vh]">
@@ -1466,7 +1451,7 @@ export function EditorClient({ project }: { project: Proj }) {
                         onPointerUp={(e) => { handleArtworkPointerUp(e); handleSpotDragEnd(e); }}
                         onPointerCancel={(e) => { handleArtworkPointerUp(e); handleSpotDragEnd(e); }}
                         className={`relative z-10 overflow-hidden rounded-[1.35rem] border border-white/8 bg-black/12 shadow-[0_24px_80px_rgba(0,0,0,0.24)] sm:rounded-[1.8rem] ${
-                          positionMode || showAdvanced ? "cursor-crosshair" : ""
+                          positionMode ? "cursor-crosshair" : "cursor-crosshair"
                         }`}
                       >
                         <div className="pointer-events-none absolute inset-x-4 top-4 z-20 flex justify-between gap-3 sm:inset-x-5 sm:top-5">
@@ -1657,21 +1642,8 @@ export function EditorClient({ project }: { project: Proj }) {
                   <button onClick={triggerImagePicker} className="ghost-button ghost-button-dark rounded-full px-4 py-3 text-sm font-medium">
                     {uploading ? "上传中…" : imageUrl ? "换图" : "选图"}
                   </button>
-                  <button
-                    onClick={() => {
-                      setShowAdvanced((value) => !value);
-                      if (!showAdvanced && spots.length === 0 && imageUrl) createPrimaryCue();
-                    }}
-                    className="ghost-button ghost-button-dark rounded-full px-4 py-3 text-sm font-medium"
-                  >
-                    {showAdvanced ? "收起" : "多点录音"}
-                  </button>
-                  <button
-                    onClick={handlePositionModeToggle}
-                    className="ghost-button ghost-button-dark rounded-full px-4 py-3 text-sm font-medium"
-                  >
-                    {positionMode ? (isDraggingPlayer ? "拖动中…" : "定位中") : "定位播放键"}
-                  </button>
+
+
                   <button onClick={handleShareStep} className="ghost-button ghost-button-dark rounded-full px-4 py-3 text-sm font-medium">
                     分享
                   </button>

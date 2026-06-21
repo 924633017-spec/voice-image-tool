@@ -731,6 +731,7 @@ export function EditorClient({ project }: { project: Proj }) {
   const speechStartRef = useRef(0);
   const speechResultsRef = useRef<{ text: string; startTime: number }[]>([]);
   const draggingPlayerRef = useRef(false);
+  const spotDragMovedRef = useRef(false);
 
   const selectedSpot = spots.find((spot) => spot.id === selectedId) ?? null;
   const primarySpot = spots[0] ?? null;
@@ -1229,6 +1230,7 @@ export function EditorClient({ project }: { project: Proj }) {
   function handleSpotDragStart(spotId: string, event: React.PointerEvent) {
     event.preventDefault();
     event.stopPropagation();
+    spotDragMovedRef.current = false;
     setDraggingSpotId(spotId);
     artworkFrameRef.current?.setPointerCapture(event.pointerId);
   }
@@ -1237,6 +1239,7 @@ export function EditorClient({ project }: { project: Proj }) {
     if (!draggingSpotId || !artworkFrameRef.current) return;
     const pos = getPositionFromClientPoint(event.clientX, event.clientY);
     if (!pos) return;
+    spotDragMovedRef.current = true;
     setSpots((prev) =>
       prev.map((s) => (s.id === draggingSpotId ? { ...s, x: pos.x, y: pos.y } : s))
     );
@@ -1487,16 +1490,17 @@ export function EditorClient({ project }: { project: Proj }) {
                             </div>
                           )}
                         </div>
-                        <Image
-                          src={imageUrl}
-                          alt={title}
-                          draggable={false}
-                          width={imageSize?.width ?? 1800}
-                          height={imageSize?.height ?? 1400}
-                          sizes="(min-width: 1280px) 72vw, (min-width: 1024px) 66vw, 100vw"
-                          className="block max-h-[76vh] max-w-full object-contain"
-                          style={{ pointerEvents: "none", userSelect: "none" }}
-                        />
+                        <div style={{ pointerEvents: "none", userSelect: "none" }} className="contents">
+                          <Image
+                            src={imageUrl}
+                            alt={title}
+                            draggable={false}
+                            width={imageSize?.width ?? 1800}
+                            height={imageSize?.height ?? 1400}
+                            sizes="(min-width: 1280px) 72vw, (min-width: 1024px) 66vw, 100vw"
+                            className="block max-h-[76vh] max-w-full object-contain"
+                          />
+                        </div>
 
                         {/* Multi-spot players: each spot with audio gets its own play button + subtitle */}
                         {spots.filter(s => s.audio).map((spot) => {

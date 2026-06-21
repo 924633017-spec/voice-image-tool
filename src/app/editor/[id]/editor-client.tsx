@@ -710,6 +710,7 @@ export function EditorClient({ project }: { project: Proj }) {
     parsedSettings.imageSize ?? null,
   );
   const [positionMode, setPositionMode] = useState(false);
+  const [addSpotMode, setAddSpotMode] = useState(false);
   const [isDraggingPlayer, setIsDraggingPlayer] = useState(false);
   const [draggingSpotId, setDraggingSpotId] = useState<string | null>(null);
   const [speechSupported] = useState(() => {
@@ -987,6 +988,7 @@ export function EditorClient({ project }: { project: Proj }) {
       y: Math.round((((event.clientY - bounds.top) / bounds.height) * 10000)) / 100,
       title: `录音 ${spots.length + 1}`,
     });
+    setAddSpotMode(false);
     toast.success(`已添加录音 ${spots.length + 1}`);
   }
 
@@ -1430,6 +1432,12 @@ export function EditorClient({ project }: { project: Proj }) {
                         if (file) void uploadFile(file);
                       }}
                     />
+                    <button
+                      onClick={() => { setAddSpotMode(!addSpotMode); if (positionMode) setPositionMode(false); }}
+                      className={`rounded-full px-4 py-2 text-sm font-medium ${addSpotMode ? "accent-button" : "ghost-button ghost-button-dark"}`}
+                    >
+                      {addSpotMode ? "点击图上放置" : "添加录音"}
+                    </button>
                     <button onClick={handleShareStep} className="ghost-button ghost-button-dark rounded-full px-4 py-2 text-sm font-medium">分享</button>
                   </div>
                 </div>
@@ -1446,7 +1454,7 @@ export function EditorClient({ project }: { project: Proj }) {
                     <div className="relative flex min-h-[46vh] items-center justify-center sm:min-h-[64vh] lg:min-h-[72vh]">
                       <div
                         ref={artworkFrameRef}
-                        onClick={positionMode ? updatePlayerPosition : showAdvanced ? addSpot : undefined}
+                        onClick={addSpotMode ? addSpot : undefined}
                         onPointerMove={(e) => { handleArtworkPointerMove(e); handleSpotDragMove(e); }}
                         onPointerUp={(e) => { handleArtworkPointerUp(e); handleSpotDragEnd(e); }}
                         onPointerCancel={(e) => { handleArtworkPointerUp(e); handleSpotDragEnd(e); }}
@@ -1457,19 +1465,19 @@ export function EditorClient({ project }: { project: Proj }) {
                         <div className="pointer-events-none absolute inset-x-4 top-4 z-20 flex justify-between gap-3 sm:inset-x-5 sm:top-5">
                           <div className="flex flex-col gap-1.5">
                             <div className="max-w-[18rem] rounded-full border border-white/10 bg-black/24 px-3 py-2 text-[11px] tracking-[0.14em] text-white/56 uppercase backdrop-blur-xl">
-                              {recordedCount > 0
-                                ? "点一下图上编号切换录音段，试听或继续录"
-                                : positionMode
-                                  ? "在作品上点一下，放下播放键"
-                                  : "先录一段你的讲述"}
+                              {addSpotMode
+                                ? "点击图上任意位置添加录音"
+                                : recordedCount > 0
+                                  ? "拖动播放键调整位置，点播放试听"
+                                  : "点击「添加录音」在图上放置录音点" }
                             </div>
                             {spots.length > 1 && (
                               <div className="max-w-[16rem] rounded-full border border-white/10 bg-black/24 px-3 py-2 text-[10px] tracking-[0.14em] text-white/40 uppercase backdrop-blur-xl">
-                                点图上任意位置添加录音段
+                                按住播放键可拖动位置
                               </div>
                             )}
                           </div>
-                          {showAdvanced && spots.length > 1 && (
+                          {spots.length > 1 && (
                             <div className="rounded-full border border-white/10 bg-black/24 px-3 py-2 text-[11px] tracking-[0.14em] text-white/56 uppercase backdrop-blur-xl">
                               录音段 · {String(spots.length).padStart(2, "0")}
                             </div>
@@ -1645,6 +1653,12 @@ export function EditorClient({ project }: { project: Proj }) {
                   </button>
 
 
+                  <button
+                    onClick={() => { setAddSpotMode(!addSpotMode); if (positionMode) setPositionMode(false); }}
+                    className={`rounded-full px-4 py-3 text-sm font-medium ${addSpotMode ? "accent-button" : "ghost-button ghost-button-dark"}`}
+                  >
+                    {addSpotMode ? "放置中" : "添加录音"}
+                  </button>
                   <button onClick={handleShareStep} className="ghost-button ghost-button-dark rounded-full px-4 py-3 text-sm font-medium">
                     分享
                   </button>

@@ -852,7 +852,7 @@ export function EditorClient({ project }: { project: Proj }) {
     if (!selectedId && spots[0]) {
       setSelectedId(spots[0].id);
     }
-    if (!primarySpot && spots.length === 0) {
+    if (spots.length === 0) {
       createPrimaryCue();
     }
     setTimeout(() => {
@@ -1751,7 +1751,7 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
               {selectedSpot && (
               <section id="record-panel-mobile" className="premium-shell rounded-[1.6rem] p-4 sm:rounded-[2rem]">
                 <div className="rounded-[1.35rem] bg-white/[0.03] px-4 py-4 sm:rounded-[1.7rem]">
-                    <p className="eyebrow">{selectedSpot === primarySpot ? "录音" : "录音段"}</p>
+                    <p className="eyebrow">录音</p>
                     <h2 className="display-title mt-4 text-[2rem] leading-[0.88] text-white">{selectedSpot.title}</h2>
                     <p className="mt-3 text-sm leading-6 text-white/46">说完这一句，它就会直接贴在作品上。</p>
 
@@ -1765,7 +1765,7 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                     )}
 
                     {!recording && !recordedBlob && (
-                      <button onClick={startRecording} className="accent-button mt-3 w-full rounded-full px-4 py-3 text-sm font-medium">
+                      <button onClick={() => { if (selectedSpot.audio && !confirm("重新录音将覆盖当前录音，确定？")) return; startRecording(); }} className="accent-button mt-3 w-full rounded-full px-4 py-3 text-sm font-medium">
                         {selectedSpot.audio ? "重新录音" : "开始录音"}
                       </button>
                     )}
@@ -1927,7 +1927,7 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
             {selectedSpot && (
               <section id="record-panel" className="premium-shell rounded-[2.4rem] p-5">
                 <div className="rounded-[2rem] bg-white/[0.03] px-5 py-5">
-                  <p className="eyebrow">{selectedSpot === primarySpot ? "录音" : "录音段"}</p>
+                  <p className="eyebrow">录音</p>
                   <h2 className="display-title mt-4 text-[2.4rem] leading-[0.84] text-white">
                     {selectedSpot.title}
                   </h2>

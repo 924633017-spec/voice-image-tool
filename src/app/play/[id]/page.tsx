@@ -66,7 +66,7 @@ export default async function PlayPage({ params }: Props) {
 
   const playableCount = project?.hotspots.filter((hotspot) => hotspot.audio).length ?? 0;
 
-  if (!project || !project.coverImage || playableCount === 0) {
+  if (!project || !project.coverImage) {
     notFound();
   }
 

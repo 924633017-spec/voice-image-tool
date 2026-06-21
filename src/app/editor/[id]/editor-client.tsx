@@ -32,7 +32,9 @@ type BrowserSpeechRecognition = {
   lang: string;
   continuous: boolean;
   interimResults: boolean;
+  maxAlternatives: number;
   onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null;
+  onerror: ((event: Event & { error?: string }) => void) | null;
   start: () => void;
   stop: () => void;
 };

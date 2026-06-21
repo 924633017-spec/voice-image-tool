@@ -1084,7 +1084,9 @@ export function EditorClient({ project }: { project: Proj }) {
       const finalDuration = duration || recordingTime;
       const rawResults = speechResultsRef.current;
       let subtitles = buildTimedSubtitles(rawResults, finalDuration);
+      let transcribeStatus = rawResults.length > 0 ? "浏览器识别" : "未识别到语音";
 
+      // Try server transcription
       try {
         const transcribeResponse = await fetch("/api/transcribe", {
           method: "POST",
@@ -1098,6 +1100,7 @@ export function EditorClient({ project }: { project: Proj }) {
           };
           if (transcribeData.segments?.length) {
             subtitles = buildSubtitlesFromSegments(transcribeData.segments, finalDuration);
+            transcribeStatus = "服务端识别";
           }
         }
       } catch {}
@@ -1124,7 +1127,7 @@ export function EditorClient({ project }: { project: Proj }) {
       setLiveSubs([]);
       toast.dismiss(savingId);
 
-      toast.success(`录音已保存${subtitles.length > 0 ? `，识别出 ${subtitles.length} 句字幕` : ""}`);
+      toast.success(`录音已保存 · ${transcribeStatus}${subtitles.length > 0 ? `，${subtitles.length} 句` : ""}`);
     } catch (err) {
       toast.dismiss(savingId);
       toast.error(`保存失败: ${err instanceof Error ? err.message : "网络错误"}`);

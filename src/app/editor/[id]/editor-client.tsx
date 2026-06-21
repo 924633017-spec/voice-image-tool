@@ -1500,12 +1500,13 @@ export function EditorClient({ project }: { project: Proj }) {
                           return (
                             <div
                               key={spot.id}
-                              className="absolute z-30"
+                              className="absolute z-30 cursor-grab active:cursor-grabbing"
                               style={{
                                 left: `${spot.x}%`,
                                 top: `${spot.y}%`,
                                 transform: `translate(${tx}, -50%)`,
                               }}
+                              onPointerDown={(e) => { e.stopPropagation(); handleSpotDragStart(spot.id, e); }}
                             >
                               <div className="flex flex-col max-w-[min(42vw,280px)] sm:max-w-[min(34vw,320px)]" style={{ alignItems: ai }}>
                                 {verticalMode === "above" && currentSub && (
@@ -1516,7 +1517,7 @@ export function EditorClient({ project }: { project: Proj }) {
                                   </div>
                                 )}
                                 <button
-                                  onClick={(e) => { e.stopPropagation(); setSelectedId(spot.id); togglePreviewAudio(spot); }}
+                                  onClick={(e) => { e.stopPropagation(); if (spotDragMovedRef.current) return; setSelectedId(spot.id); togglePreviewAudio(spot); }}
                                   className="pointer-events-auto inline-flex items-center gap-1 rounded-full border border-white/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.05))] px-2 py-1.5 backdrop-blur-xl shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.2),rgba(255,255,255,0.08))] transition-all"
                                 >
                                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white" style={{ background: spot.color }}>
@@ -1849,17 +1850,15 @@ export function EditorClient({ project }: { project: Proj }) {
                             }
                             className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-white outline-none"
                           />
-                          {index > 0 && (
-                            <button
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                deleteSpot(spot.id);
-                              }}
-                              className="text-[11px] tracking-[0.16em] text-white/42 uppercase transition-opacity hover:opacity-75"
-                            >
-                              删除
-                            </button>
-                          )}
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              deleteSpot(spot.id);
+                            }}
+                            className="text-[11px] tracking-[0.16em] text-white/42 uppercase transition-opacity hover:opacity-75"
+                          >
+                            删除
+                          </button>
                         </div>
                         <div className="mt-3 text-xs leading-6 text-white/42">
                           {spot.audio ? `${formatSeconds(spot.audio.duration)} · ${spot.audio.subtitles.length} 句` : "尚未录音"}

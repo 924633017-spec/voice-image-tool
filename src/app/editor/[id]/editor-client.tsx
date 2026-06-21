@@ -692,7 +692,7 @@ export function EditorClient({ project }: { project: Proj }) {
   const [imageUrl, setImageUrl] = useState<string | null>(project.coverImage);
   const [spots, setSpots] = useState<Spot[]>(project.hotspots);
   const [selectedId, setSelectedId] = useState<string | null>(project.hotspots[0]?.id ?? null);
-  const [showAdvanced, setShowAdvanced] = useState(project.hotspots.length > 1);
+  const [showAdvanced, setShowAdvanced] = useState(true); // 默认开启多点讲解
   const [uploading, setUploading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -1439,12 +1439,19 @@ export function EditorClient({ project }: { project: Proj }) {
                         }`}
                       >
                         <div className="pointer-events-none absolute inset-x-4 top-4 z-20 flex justify-between gap-3 sm:inset-x-5 sm:top-5">
-                          <div className="max-w-[16rem] rounded-full border border-white/10 bg-black/24 px-3 py-2 text-[11px] tracking-[0.14em] text-white/56 uppercase backdrop-blur-xl">
-                            {recordedCount > 0
-                              ? "点一下试听，或继续补一段讲述"
-                              : positionMode
-                                ? "在作品上点一下，放下播放键"
-                                : "先录一段你的讲述"}
+                          <div className="flex flex-col gap-1.5">
+                            <div className="max-w-[18rem] rounded-full border border-white/10 bg-black/24 px-3 py-2 text-[11px] tracking-[0.14em] text-white/56 uppercase backdrop-blur-xl">
+                              {recordedCount > 0
+                                ? "点一下图上编号圆圈切换讲解点，试听或补录"
+                                : positionMode
+                                  ? "在作品上点一下，放下播放键"
+                                  : "先录一段你的讲述"}
+                            </div>
+                            {spots.length > 1 && (
+                              <div className="max-w-[16rem] rounded-full border border-white/10 bg-black/24 px-3 py-2 text-[10px] tracking-[0.14em] text-white/40 uppercase backdrop-blur-xl">
+                                点击图上任意位置可添加新讲解点
+                              </div>
+                            )}
                           </div>
                           {showAdvanced && spots.length > 1 && (
                             <div className="rounded-full border border-white/10 bg-black/24 px-3 py-2 text-[11px] tracking-[0.14em] text-white/56 uppercase backdrop-blur-xl">

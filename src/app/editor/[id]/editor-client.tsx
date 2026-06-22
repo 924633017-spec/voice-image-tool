@@ -1738,21 +1738,11 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                 </div>
               </section>
 
-              {/* Mobile sticky recording bar */}
+              {/* Mobile sticky bottom bar */}
               {selectedSpot && (
-              <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
-                <section className="premium-shell rounded-t-[1.6rem] p-4">
-                  {!recording && !recordedBlob && (
-                    <button onClick={() => { if (selectedSpot.audio && !confirm("重新录音将覆盖当前录音，确定？")) return; startRecording(); }} className="accent-button w-full rounded-full px-4 py-3 text-sm font-medium">
-                      {selectedSpot.audio ? "重新录音" : "开始录音 · " + selectedSpot.title}
-                    </button>
-                  )}
-                  {selectedSpot.audio && !recordedBlob && !recording && (
-                    <button onClick={() => togglePreviewAudio(selectedSpot)} className="ghost-button ghost-button-dark mb-2 flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-medium">
-                      {playingId === selectedSpot.id ? "暂停" : "播放"} · {formatSeconds(selectedSpot.audio.duration)}
-                    </button>
-                  )}
-                  {recording && (
+              <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+                <section className="premium-shell rounded-t-[1.6rem] p-3">
+                  {recording ? (
                     <div className="flex items-center gap-3">
                       <span className="relative flex h-3 w-3">
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 bg-white/80"/>
@@ -1761,16 +1751,26 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                       <span className="text-sm font-semibold tabular-nums text-white">{recordingTime.toFixed(1)}s</span>
                       <span className="text-xs text-white/42">字幕 {liveSubs.length}</span>
                       <div className="flex-1"/>
-                      <button onClick={stopRecording} className="ghost-button ghost-button-dark rounded-full px-4 py-2 text-sm font-medium">
-                        停止
-                      </button>
+                      <button onClick={stopRecording} className="ghost-button ghost-button-dark rounded-full px-4 py-2 text-sm font-medium">停止</button>
                     </div>
-                  )}
-                  {recordedBlob && (
+                  ) : recordedBlob ? (
                     <div className="flex gap-2">
-                      <button onClick={saveRecording} className="accent-button flex-1 rounded-full px-4 py-3 text-sm font-medium">保存</button>
+                      <button onClick={saveRecording} className="accent-button flex-1 rounded-full px-4 py-3 text-sm font-medium">保存录音</button>
                       <button onClick={() => setRecordedBlob(null)} className="ghost-button ghost-button-dark rounded-full px-4 py-3 text-sm font-medium">丢弃</button>
                     </div>
+                  ) : selectedSpot.audio ? (
+                    <div className="flex gap-2">
+                      <button onClick={() => togglePreviewAudio(selectedSpot)} className="ghost-button ghost-button-dark flex-1 rounded-full px-4 py-3 text-sm font-medium">
+                        {playingId === selectedSpot.id ? "⏸ 暂停" : "▶ 播放"} · {formatSeconds(selectedSpot.audio.duration)}
+                      </button>
+                      <button onClick={() => { if (confirm("重新录音？")) startRecording(); }} className="accent-button rounded-full px-4 py-3 text-sm font-medium">
+                        重录
+                      </button>
+                    </div>
+                  ) : (
+                    <button onClick={startRecording} className="accent-button w-full rounded-full px-4 py-3 text-sm font-medium">
+                      开始录音 · {selectedSpot.title}
+                    </button>
                   )}
                 </section>
               </div>

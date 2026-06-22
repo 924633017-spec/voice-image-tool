@@ -158,7 +158,7 @@ function buildTimedSubtitles(rawResults: { text: string; startTime: number }[], 
 
   if (chunks.length === 0) {
     return [
-      { id: crypto.randomUUID(), text: "（未识别到语音）", startTime: 0, endTime: finalDuration },
+      { id: crypto.randomUUID(), text: "录音已保存", startTime: 0, endTime: finalDuration },
     ];
   }
 
@@ -1810,7 +1810,7 @@ document.addEventListener("DOMContentLoaded",()=>{const c=document.getElementByI
                             <span className="relative inline-flex h-3 w-3 rounded-full bg-white" />
                           </span>
                           <span className="text-sm font-semibold tabular-nums text-white">{recordingTime.toFixed(1)}s</span>
-                          <span className="text-xs text-white/42">字幕 {liveSubs.length}{!speechSupported ? " (浏览器不支持实时字幕，录音保存后将用服务端转写)" : ""}</span>
+                          <span className="text-xs text-white/42">{speechSupported ? `字幕 ${liveSubs.length}` : "移动端字幕需保存后由服务端生成"}</span>
                         </div>
 
                         {liveSubs.length > 0 && (
